@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CityInsight</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #000000; 
+}
+
+/* Navbar Styles */
+.navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 30px;
+            background-color: #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            font-size: 18px;
+            z-index: 100;
+        }
+
+        .navbar .logo {
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar .logo img {
+            height: 30px;
+            margin-right: 10px;
+        }
+
+        .navbar .links {
+            display: flex;
+            gap: 20px;
+           
+        }
+
+        .navbar .links a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .navbar .links a:hover {
+            color: #149DCD;
+        }
+
+.main-section {
+    padding: 100px 0;
+    background: linear-gradient(to bottom, #00122f, #0d1628); 
+    color: white;
+}
+
+.main-section h1 {
+    font-size: 60px;
+    font-weight: bold;
+    color: white; 
+}
+
+.main-section p {
+    color: #ffffff;
+}
+
+.main-section .btn-primary {
+    background-color: #009FE2;
+    border: none;
+    font-size: 18px;
+    padding: 12px 24px;
+}
+
+.main-section .btn-outline-light {
+    border: 2px solid white; 
+    color: white;
+    font-size: 18px;
+    padding: 12px 24px;
+}
+
+.main-section .btn-outline-light:hover {
+    background-color: white;
+    color: #000000; 
+}
+
+.cards-section {
+    background-color: #0d0d0d;
+}
+
+.cards-section .card {
+    background-color: #0072bc;
+    border: none;
+    color: white;
+    border-radius: 0; 
+    height: 150px; /* Fixed height */
+    display: flex;
+    align-items: center; /* Center content vertically */
+}
+
+.cards-section .card:nth-child(2) {
+    background-color: #101010 !important;/* Black color for the middle card */
+}
+
+.cards-section .avatar {
+    width: 100px;
+    height: 100px; /* Square image */
+    object-fit: cover;
+    margin-right: 20px; /* Space between avatar and text */
+    border-radius: 0; /* Keep square shape */
+}
+
+.cards-section .card-body {
+    padding: 0; /* Remove padding around card body */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Center text vertically */
+    text-align: center; /* Center text horizontally */
+}
+
+.cards-section .card-text {
+    font-size: 18px;
+    color: white; /* White text for LOREM IPSUM */
+    text-align: center; /* Center align the text */
+    margin: 0; /* Remove margin around the text */
+}
+
+.cards-section .card h5 {
+    font-size: 24px;
+    text-align: center; /* Center align the heading */
+    margin: 0; /* Remove margin around the heading */
+}
+
+.cards-section .card img {
+    width: 100%; 
+    height: auto; 
+    max-width: 150px; 
+    max-height: 150px; 
+    object-fit: cover; 
+    margin: 0 auto; 
+    border-radius: 0; 
+}
+.carousel-container {
+            position: relative;
+            width: 80%;
+            margin: 40px auto;
+            overflow: hidden;
+            border-radius: 10px;
+            background-color: #222;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .carousel {
+            display: flex;
+            transition: transform 0.5s ease;
+        }
+
+        .carousel-item {
+            flex: 0 0 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            color: #fff;
+            text-align: center;
+        }
+
+        .carousel-item h4 {
+            color: #1da1f2;
+            margin-bottom: 10px;
+        }
+
+        .carousel-item p {
+            color: #ddd;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .carousel-item span {
+            display: block;
+            font-size: 14px;
+            color: #aaa;
+            margin-top: 10px;
+        }
+
+        .carousel-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            border: none;
+            font-size: 18px;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 50%;
+            z-index: 100;
+        }
+
+        .prev-btn {
+            left: 10px;
+        }
+
+        .next-btn {
+            right: 10px;
+        }
+</style>
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="logo">
+            <img src="./images/Logo.png" alt="Logo">
+        </div>
+        <div class="links">
+            <a href="LandingPage.html">Home</a>
+            <a href="login.html">Login</a>
+            <a href="index.html">Register</a>
+        </div>
+    </nav>
+
+    <!-- Main Section -->
+    <section class="text-center main-section">
+        <div class="container">
+            <p class="lead">Navigate Safely with</p>
+            <h1>City<span style="color:#149DCD">Insight</span></h1>
+            <div class="my-4">
+            <a href="index.html" class="btn btn-primary btn-lg">Get Started</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cards Section -->
+<section class="cards-section py-5">
+    <div class="container d-flex justify-content-center">
+        <div class="row w-100">
+            <div class="col-md-4 d-flex justify-content-center">
+                <div class="card mb-4 shadow-sm d-flex flex-row align-items-center" style="width: 100%;">
+                    <img src="./images/Ic1.jpg" class="card-img avatar" alt="Avatar 1">
+                    <div class="card-body d-flex flex-column justify-content-center">
+                        <h5>Fast</h5>
+                        <p class="card-text">Real-time updates</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 d-flex justify-content-center">
+                <div class="card mb-4 shadow-sm d-flex flex-row align-items-center" style="width: 100%;">
+                    <img src="./images/Ic2.png" class="card-img avatar" alt="Avatar 2">
+                    <div class="card-body d-flex flex-column justify-content-center">
+                        <h5>Reliable</h5>
+                        <p class="card-text">Trusted insights</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 d-flex justify-content-center">
+                <div class="card mb-4 shadow-sm d-flex flex-row align-items-center" style="width: 100%;">
+                    <img src="./images/Ic3.png" class="card-img avatar" alt="Avatar 3">
+                    <div class="card-body d-flex flex-column justify-content-center">
+                        <h5>Community</h5>
+                        <p class="card-text">User-driven data</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+ 
+</section>
+   <div class="carousel-container">
+        <div class="carousel" id="testimonial-carousel">
+            <!-- Testimonials will be dynamically inserted here -->
+        </div>
+        <button class="carousel-btn prev-btn" onclick="prevSlide()">&#10094;</button>
+        <button class="carousel-btn next-btn" onclick="nextSlide()">&#10095;</button>
+    </div>
+
+    <script type="module">
+        // Firebase initialization
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+        apiKey: "AIzaSyCYF9a_WvqUwBULYc8MXos_nba-_mrW17U",
+        authDomain: "cityinsight-61c09.firebaseapp.com",
+        projectId: "cityinsight-61c09",
+        storageBucket: "cityinsight-61c09.appspot.com",
+        messagingSenderId: "230924032629",
+        appId: "1:230924032629:web:5b0b7e10e88959a3db763c",
+        measurementId: "G-VV7WJRCEZ0"
+      };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Fetch testimonials from Firestore
+        const fetchTestimonials = async () => {
+            const carousel = document.getElementById("testimonial-carousel");
+            const querySnapshot = await getDocs(collection(db, "testimonials"));
+            const testimonials = [];
+
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                testimonials.push(data);
+            });
+
+            // Sort testimonials by date (optional)
+            testimonials.sort((a, b) => b.date.toMillis() - a.date.toMillis());
+
+            // Generate testimonial items
+            carousel.innerHTML = testimonials.map(testimonial => `
+                <div class="carousel-item">
+                    <h4>${testimonial.author || 'Anonymous'}</h4>
+                    <p>"${testimonial.content}"</p>
+                    <span>${new Date(testimonial.date.toMillis()).toLocaleDateString()}</span>
+                </div>
+            `).join("");
+
+            // Initialize carousel
+            currentSlide = 0;
+            updateCarousel();
+        };
+
+        // Carousel Logic
+        let currentSlide = 0;
+
+        const updateCarousel = () => {
+            const carousel = document.getElementById("testimonial-carousel");
+            const items = carousel.children;
+            const totalSlides = items.length;
+            const offset = -currentSlide * 100;
+
+            carousel.style.transform = `translateX(${offset}%)`;
+        };
+
+        const prevSlide = () => {
+            const carousel = document.getElementById("testimonial-carousel");
+            const totalSlides = carousel.children.length;
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            updateCarousel();
+        };
+
+        const nextSlide = () => {
+            const carousel = document.getElementById("testimonial-carousel");
+            const totalSlides = carousel.children.length;
+            currentSlide = (currentSlide + 1) % totalSlides;
+            updateCarousel();
+        };
+
+        // Make functions accessible globally
+        window.prevSlide = prevSlide;
+        window.nextSlide = nextSlide;
+
+        // Fetch testimonials on page load
+        fetchTestimonials();
+    </script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Barangays - Urdaneta City, Pangasinan</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/body.css">
+    <style>
+        /* Main styling */
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s ease;
+        }
+
+        button i {
+            margin-right: 8px;
+        }
+
+        /* Hover effect */
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        /* Modal styling */
+        #modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            width: 300px;
+            z-index: 10;
+        }
+
+        #modal input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        #modal button {
+            margin-top: 15px;
+        }
+
+        #modal-close {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            cursor: pointer;
+            color: #333;
+            font-size: 20px;
+        }
+
+        /* Action button container for row alignment */
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .button-edit {
+            background-color: #f39c12;
+        }
+
+        .button-delete {
+            background-color: #e74c3c;
+        }
+
+        .button-delete:hover {
+            background-color: #c0392b;
+        }
+    </style>
+    
+    <!-- Include necessary external libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+</head>
+<body>
+    <div class="sidebar">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiY2opV-RQ_a3X86nC4cQ8rNlNBtFkBoHKTw&s" alt="Logo" class="logo">
+        <p style="text-align:center">Admin Menard</p>
+        <ul>
+            <li><a href="dashboard.html"> <i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+            <li><a href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a></li>
+            <li><a href="users.html"><i class="fas fa-users"></i> Users</a></li>
+            <li><a href="barangay.html"><i class="fas fa-map-marker-alt"></i> Barangays</a></li>
+            <li><a href="crimes.html"><i class="fas fa-file-alt"></i> Crime Reports</a></li>
+            <li><a href="crime_adding.html"><i class="fas fa-plus-circle"></i> Adding Crime Reports</a></li>
+            <li><a href="archived.html"><i class="fas fa-archive"></i> Archived</a></li>
+     
+            <li><a href="reports.html"><i class="fas fa-bell"></i> Incident Reports <span id="pendingReportsCount" class="pending-badge">0</span></a></li>
+            <li><a href="sos.html"><i class="fas fa-ambulance"></i> SOS Reports</a></li>
+  
+            <li><a href="logout.html" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+        
+    </div>
+
+    <div class="main-content">
+        <h2>Manage Barangays in Urdaneta City</h2>
+        <button onclick="openAddModal()">
+            <i class="fas fa-plus-circle"></i> Add New Barangay
+        </button>
+
+        <!-- Data Table -->
+        <table id="barangaysTable" class="display">
+            <thead>
+                <tr>
+                    <th>Barangay Name</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Barangay data will be dynamically inserted here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="modal">
+        <span id="modal-close" onclick="closeModal()">&times;</span>
+        <h3 id="modal-title">Add Barangay</h3>
+        <input type="text" id="barangayName" placeholder="Barangay Name" required>
+        <button onclick="saveBarangay()">Save</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+        import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCYF9a_WvqUwBULYc8MXos_nba-_mrW17U",
+            authDomain: "cityinsight-61c09.firebaseapp.com",
+            projectId: "cityinsight-61c09",
+            storageBucket: "cityinsight-61c09.appspot.com",
+            messagingSenderId: "230924032629",
+            appId: "1:230924032629:web:5b0b7e10e88959a3db763c",
+            databaseURL: "https://cityinsight-61c09-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let editBarangayId = null;
+
+        // Redirect if not authenticated
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+            }
+        });
+
+        // Load Barangays into DataTable
+        async function loadBarangays() {
+            const barangaysTable = $('#barangaysTable').DataTable();
+            barangaysTable.clear().draw();
+
+            const barangaysSnapshot = await getDocs(collection(db, 'barangays'));
+
+            barangaysSnapshot.forEach((doc) => {
+                const barangay = doc.data().name;
+                const id = doc.id;
+                barangaysTable.row.add([
+                    barangay,
+                    `<div class="action-buttons">
+                        <button class="button-edit" onclick="editBarangay('${id}', '${barangay}')">Edit</button>
+                        <button class="button-delete" onclick="deleteBarangay('${id}')">Delete</button>
+                    </div>`
+                ]).draw();
+            });
+        }
+
+        // Add Barangay to Firestore
+        async function addBarangay(name) {
+            await addDoc(collection(db, 'barangays'), { name });
+            await loadBarangays();
+        }
+
+        // Update Barangay in Firestore
+        async function updateBarangay(id, name) {
+            const barangayDoc = doc(db, 'barangays', id);
+            await updateDoc(barangayDoc, { name });
+            await loadBarangays();
+        }
+
+        // Delete Barangay from Firestore with confirmation
+        async function deleteBarangay(id) {
+            const confirmDelete = await Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, delete it!'
+            });
+
+            if (confirmDelete.isConfirmed) {
+                await deleteDoc(doc(db, 'barangays', id));
+                await loadBarangays();
+            }
+        }
+
+        // Modal control functions
+        function openAddModal() {
+            document.getElementById("modal").style.display = "block";
+            document.getElementById("barangayName").value = "";
+            document.getElementById("modal-title").textContent = "Add Barangay";
+            editBarangayId = null;
+        }
+
+        function editBarangay(id, name) {
+            document.getElementById("modal").style.display = "block";
+            document.getElementById("barangayName").value = name;
+            document.getElementById("modal-title").textContent = "Edit Barangay";
+            editBarangayId = id;
+        }
+
+        async function saveBarangay() {
+            const barangayName = document.getElementById("barangayName").value.trim();
+            if (barangayName === "") {
+                Swal.fire("Error", "Barangay name cannot be empty.", "error");
+                return;
+            }
+
+            if (editBarangayId) {
+                await updateBarangay(editBarangayId, barangayName);
+            } else {
+                await addBarangay(barangayName);
+            }
+
+            closeModal();
+        }
+
+        function closeModal() {
+            document.getElementById("modal").style.display = "none";
+            editBarangayId = null;
+        }
+
+        // Attach functions to the window object for global access
+        window.openAddModal = openAddModal;
+        window.editBarangay = editBarangay;
+        window.deleteBarangay = deleteBarangay;
+        window.saveBarangay = saveBarangay;
+        window.closeModal = closeModal;
+
+        // Initialize DataTable and load barangays on page load
+        $(document).ready(function() {
+            $('#barangaysTable').DataTable();
+            loadBarangays();
+        });
+
+        // Logout functionality
+        document.getElementById("logout-btn").addEventListener("click", (e) => {
+            e.preventDefault();
+            signOut(auth).then(() => {
+                window.location.href = "login.html";
+            }).catch((error) => {
+                console.error('Error signing out: ', error);
+            });
+        });
+    </script>
+</body>
+</html>

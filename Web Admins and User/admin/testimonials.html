@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barangays and Testimonials - Urdaneta City</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/body.css">
+    <style>
+        /* Button Styles */
+        .button {
+            padding: 8px 15px;
+            font-size: 14px;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .button.display {
+            background-color: #3498db;
+        }
+
+        .button.display:hover {
+            background-color: #2980b9;
+        }
+
+        .button.delete {
+            background-color: #e74c3c;
+        }
+
+        .button.delete:hover {
+            background-color: #c0392b;
+        }
+
+        table {
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        table th, table td {
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js"></script>
+</head>
+<body>
+    <div class="sidebar">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiY2opV-RQ_a3X86nC4cQ8rNlNBtFkBoHKTw&s" alt="Logo" class="logo">
+        <p style="text-align:center">Admin Menard</p>
+        <ul>
+            <li><a href="dashboard.html"> <i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+            <li><a href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a></li>
+            <li><a href="users.html"><i class="fas fa-users"></i> Users</a></li>
+            <li><a href="barangay.html"><i class="fas fa-map-marker-alt"></i> Barangays</a></li>
+            <li><a href="crimes.html"><i class="fas fa-file-alt"></i> Crime Reports</a></li>
+            <li><a href="crime_adding.html"><i class="fas fa-plus-circle"></i> Adding Crime Reports</a></li>
+            <li><a href="archived.html"><i class="fas fa-archive"></i> Archived</a></li>
+            <li><a href="floods.html"><i class="fas fa-tint"></i> Flood Reports</a></li>
+            <li><a href="flood_adding.html"><i class="fas fa-plus-square"></i> Adding Flood Reports</a></li>
+            <li><a href="reports.html"><i class="fas fa-bell"></i> Incident Reports <span id="pendingReportsCount" class="pending-badge">0</span></a></li>
+            <li><a href="sos.html"><i class="fas fa-ambulance"></i> SOS Reports</a></li>
+            <li><a href="testimonials.html"><i class="fas fa-comments"></i> Testimonials</a></li>
+            <li><a href="logout.html" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </div>
+        
+    <div class="main-content">
+        <h2>Barangays and Testimonials</h2>
+        <h3>Pending Testimonials</h3>
+        <table id="testimonialsTable" class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Barangay Name</th>
+                    <th>Testimonial Content</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Testimonials data will be dynamically inserted here -->
+            </tbody>
+        </table>
+
+        <h3>Approved Testimonials</h3>
+        <table id="approvedTestimonialsTable" class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Barangay Name</th>
+                    <th>Testimonial Content</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Approved testimonials data will be dynamically inserted here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+        import { getFirestore, collection, getDocs, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js"; 
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCYF9a_WvqUwBULYc8MXos_nba-_mrW17U",
+            authDomain: "cityinsight-61c09.firebaseapp.com",
+            projectId: "cityinsight-61c09",
+            storageBucket: "cityinsight-61c09.appspot.com",
+            messagingSenderId: "230924032629",
+            appId: "1:230924032629:web:5b0b7e10e88959a3db763c",
+            measurementId: "G-VV7WJRCEZ0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Redirect to login if not logged in
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = 'login.html'; // Redirect to login page
+            }
+        });
+
+        // Function to load testimonials data from Firestore and display in tables
+        async function loadTestimonials() {
+            const pendingTableBody = document.querySelector('#testimonialsTable tbody');
+            const approvedTableBody = document.querySelector('#approvedTestimonialsTable tbody');
+            pendingTableBody.innerHTML = ""; // Clear existing data
+            approvedTableBody.innerHTML = ""; // Clear existing data
+
+            const querySnapshot = await getDocs(collection(db, 'testimonials'));
+
+            querySnapshot.forEach((docSnapshot) => {
+                const data = docSnapshot.data();
+                const newRow = document.createElement('tr');
+
+                const nameCell = document.createElement('td');
+                nameCell.textContent = data.name || 'No Name';
+                newRow.appendChild(nameCell);
+
+                const contentCell = document.createElement('td');
+                contentCell.textContent = data.content || 'No Content';
+                newRow.appendChild(contentCell);
+
+                const timestamp = data.date; // Assuming the 'date' field is a Firestore Timestamp
+                const date = timestamp ? timestamp.toDate() : null;
+                const formattedDate = date ? date.toLocaleDateString() : 'No Date';
+
+                const dateCell = document.createElement('td');
+                dateCell.textContent = formattedDate;
+                newRow.appendChild(dateCell);
+
+                const actionCell = document.createElement('td');
+                const displayButton = document.createElement('button');
+                displayButton.classList.add('button', 'display');
+                displayButton.textContent = 'Approve';
+                displayButton.onclick = () => updateStatus(docSnapshot.id, 'approved');
+                actionCell.appendChild(displayButton);
+
+                const deleteButton = document.createElement('button');
+                deleteButton.classList.add('button', 'delete');
+                deleteButton.textContent = 'Delete';
+                deleteButton.onclick = () => deleteTestimonial(docSnapshot.id);
+                actionCell.appendChild(deleteButton);
+
+                newRow.appendChild(actionCell);
+
+                if (data.status === 'approved') {
+                    // Append to approved table
+                    approvedTableBody.appendChild(newRow);
+                } else {
+                    // Append to pending table
+                    pendingTableBody.appendChild(newRow);
+                }
+            });
+
+            // Initialize DataTables
+            $('#testimonialsTable').DataTable();
+            $('#approvedTestimonialsTable').DataTable();
+        }
+
+        // Function to update testimonial status
+        async function updateStatus(id, status) {
+            const testimonialRef = doc(db, "testimonials", id);
+            await updateDoc(testimonialRef, {
+                status: status
+            });
+            loadTestimonials(); // Reload testimonials after update
+        }
+
+        // Function to delete testimonial
+        async function deleteTestimonial(id) {
+            const testimonialRef = doc(db, "testimonials", id);
+            await deleteDoc(testimonialRef);
+            loadTestimonials(); // Reload testimonials after delete
+        }
+
+        // Initial load of testimonials
+        loadTestimonials();
+
+    </script>
+</body>
+</html>

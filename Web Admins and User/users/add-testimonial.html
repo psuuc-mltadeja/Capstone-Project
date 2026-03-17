@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CityInsight - Testimonial</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #222;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .con {
+            font-family: Arial, sans-serif;
+            background-color: #222;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            padding-left: 200px;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            font-size: 28px;
+            color: #1da1f2;
+        }
+
+        .form-container {
+            background-color: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            background-color: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .form-group textarea {
+            height: 150px;
+            resize: none;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .buttons button {
+            background-color: #1da1f2;
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .buttons button:hover {
+            background-color: #148cc0;
+        }
+
+        .form-group input[readonly] {
+            background-color: #333;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #bbb;
+        }
+
+        /* Styling for the testimonials section */
+        #approvedTestimonials {
+            margin-top: 40px;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        #testimonialsList {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .testimonial {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+
+        .testimonial:hover {
+            transform: translateY(-10px);
+            background-color: #444;
+        }
+
+        .testimonial-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .testimonial-header .avatar {
+            width: 40px;
+            height: 40px;
+            background-color: #1da1f2;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 18px;
+            margin-right: 15px;
+        }
+
+        .testimonial-header h4 {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .testimonial-content {
+            margin-top: 10px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .testimonial-footer {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #bbb;
+            text-align: right;
+        }
+
+        .testimonial-footer small {
+            font-style: italic;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #222;
+            color: #fff;
+            display: flex;
+        }
+        
+        .sidebar {
+          width: 250px;
+            position: fixed;
+            z-index: 100;
+            width: 250px;
+            height: 100vh;
+            background-color: #1a1a1a;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            font-size: 18px;
+        }
+
+        .sidebar a:hover {
+            color: #1da1f2;
+        }
+
+        .sidebar a i {
+            margin-right: 10px;
+        }
+
+        .sidebar .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1da1f2;
+            margin-bottom: 30px;
+            cursor: pointer;
+        }
+
+        .logout {
+            color: #1da1f2;
+            cursor: pointer;
+        }
+
+        .sidebar #active {
+            color: #1da1f2;
+            font-weight: bold;
+        }
+
+        #map {
+            height: 100vh;
+            width: calc(100% - 250px);
+            background-color: #eaeaea;
+            position: relative;
+            right: -250px;;
+        }
+
+        .add-button {
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            background-color: #1da1f2;
+            border: none;
+            color: #fff;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 30px;
+            border-radius: 17px;
+            text-decoration: none;
+            height: 50px; 
+        }
+        
+        .add-button:hover {
+            background-color: #148cc0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div>
+        <div class="logo" onclick="window.location.href='home.html';">
+            <span style="color: white">City</span>Insight
+        </div>
+        <a href="posttext.html" class="add-button">
+            <i class="fas fa-plus-circle"></i>&nbsp; CREATE POST
+        </a>
+        <a href="home.html" id="active">
+            <i class="fa fa-users"></i>&nbsp; Community
+        </a>
+        <a href="profile.html">
+            <i class="fas fa-user"></i>&nbsp; Profile
+        </a>
+  
+        <a href="crimes.html">
+            <i class="fas fa-exclamation-triangle"></i>&nbsp; Crimes
+        </a>
+  
+        <a href="flood.html">
+            <i class="fas fa-water"></i>&nbsp; Flood
+        </a>
+        <a href="evacs.html">
+            <i class="fas fa-map"></i>&nbsp; Evacuation Area
+        </a>
+        <a href="hospitals.html">
+            <i class="fas fa-map"></i>&nbsp; Hospitals
+        </a>
+     
+        <a href="reports.html">
+          <i class="fas fa-exclamation-triangle"></i>&nbsp; Reports
+      </a>
+      
+        <a href="about.html">
+            <i class="fas fa-info-circle"></i>&nbsp; About
+        </a>
+        <a href="add-testimonial.html">
+          <i class="fas fa-share"></i>&nbsp; Share your experience to us
+      </a>
+        <a href="login.html">
+            <i class="fas fa-sign-out-alt"></i>&nbsp; Logout
+        </a>
+        </div>
+    </div>
+    <div class="con">
+        <h2>Submit Your Testimonial</h2>
+
+        <div class="form-container">
+            <div class="form-group">
+                <input type="text" id="testimonialName" placeholder="Your Name" required readonly>
+            </div>
+
+            <div class="form-group">
+                <textarea id="testimonialContent" placeholder="Your Testimonial" required></textarea>
+            </div>
+
+            <div class="buttons">
+                <button id="submitTestimonialButton">Submit Testimonial</button>
+            </div>
+        </div>
+
+        <!-- Display the approved testimonials -->
+        <div id="approvedTestimonials">
+            <h3>Testimonials</h3>
+            <br>
+            <div id="testimonialsList"></div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-firestore.js"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-auth.js';
+        import { getFirestore, collection, addDoc, Timestamp, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCYF9a_WvqUwBULYc8MXos_nba-_mrW17U",
+            authDomain: "cityinsight-61c09.firebaseapp.com",
+            databaseURL: "https://cityinsight-61c09-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "cityinsight-61c09",
+            storageBucket: "cityinsight-61c09.appspot.com",
+            messagingSenderId: "835973145975",
+            appId: "1:835973145975:web:a23e1a13c19f090c1f953d",
+            measurementId: "G-8NQPLF9P0J"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Get logged-in user's details
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Auto-fill the name field
+                const userName = user.email || 'Anonymous User';
+                document.getElementById('testimonialName').value = userName;
+            } else {
+                alert('Please log in to submit a testimonial.');
+                window.location.href = 'login.html'; // Redirect to login page
+            }
+        });
+
+        document.getElementById('submitTestimonialButton').addEventListener('click', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('testimonialName').value;
+            const content = document.getElementById('testimonialContent').value;
+
+            if (!name || !content) {
+                alert('Both name and content are required.');
+                return;
+            }
+
+            try {
+                // Get the current timestamp
+                const currentTimestamp = Timestamp.now();
+
+                // Save the testimonial data to Firestore with status 'pending' initially
+                const docRef = await addDoc(collection(db, 'testimonials'), {
+                    name: name,
+                    content: content,
+                    date: currentTimestamp, // Store current timestamp in Firestore
+                    status: 'pending' // Testimonial status (can be approved later)
+                });
+
+                alert('Testimonial submitted successfully!');
+            } catch (error) {
+                console.error('Error submitting testimonial:', error);
+                alert('Failed to submit testimonial.');
+            }
+        });
+
+        // Fetch approved testimonials and display them
+        async function fetchApprovedTestimonials() {
+            const testimonialsList = document.getElementById('testimonialsList');
+            testimonialsList.innerHTML = ''; // Clear existing content
+
+            try {
+                // Query Firestore for testimonials with status 'approved'
+                const q = query(collection(db, 'testimonials'), where('status', '==', 'approved'));
+                const querySnapshot = await getDocs(q);
+
+                querySnapshot.forEach((doc) => {
+                    const testimonialData = doc.data();
+                    const testimonialElement = document.createElement('div');
+                    testimonialElement.classList.add('testimonial');
+
+                    const timestamp = testimonialData.date.toDate();
+                    const timeAgo = new Date() - timestamp;
+
+                    // Format the time
+                    const hoursAgo = Math.floor(timeAgo / 3600000);
+                    const timeFormatted = `${hoursAgo} hour${hoursAgo !== 1 ? 's' : ''} ago`;
+
+                    testimonialElement.innerHTML = `
+                        <div class="testimonial-header">
+                            <div class="avatar">${testimonialData.name.charAt(0)}</div>
+                            <h4>${testimonialData.name}</h4>
+                        </div>
+                        <div class="testimonial-content">
+                            ${testimonialData.content}
+                        </div>
+                        <div class="testimonial-footer">
+                            <small>${timeFormatted}</small>
+                        </div>
+                    `;
+
+                    testimonialsList.appendChild(testimonialElement);
+                });
+            } catch (error) {
+                console.error('Error fetching testimonials:', error);
+            }
+        }
+
+        // Fetch approved testimonials when the page loads
+        fetchApprovedTestimonials();
+    </script>
+
+</body>
+
+</html>

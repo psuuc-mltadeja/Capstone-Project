@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <title>CityInsight</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #222;
+            color: #fff;
+            display: flex;
+        }
+        
+        .sidebar {
+            position: fixed;
+            z-index: 100;
+            width: 250px;
+            height: 100vh;
+            background-color: #1a1a1a;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            font-size: 18px;
+        }
+
+        .sidebar a:hover {
+            color: #1da1f2;
+        }
+
+        .sidebar a i {
+            margin-right: 10px;
+        }
+
+        .sidebar .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1da1f2;
+            margin-bottom: 30px;
+            cursor: pointer;
+        }
+
+        .logout {
+            color: #1da1f2;
+            cursor: pointer;
+        }
+
+        .sidebar #active {
+            color: #1da1f2;
+            font-weight: bold;
+        }
+
+        .content {
+            width: 70%;
+            position: relative;
+            right: -320px;
+            top: 40px;
+            padding: 40px;
+            background-color: #333;
+        }
+
+        .content h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            margin-right: 20px;
+            cursor: pointer;
+            font-size: 18px;
+            padding-bottom: 5px;
+        }
+
+        .tab a {
+            color: #fff; 
+            text-decoration: none; 
+        }      
+
+        .tab a:hover {
+            color: #1da1f2;
+        } 
+
+        .tab.active {
+            border-bottom: 3px solid #1da1f2;
+            color: #1da1f2;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            background-color: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .form-group textarea {
+            height: 50px;
+            resize: none;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #888;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .buttons button {
+            background-color: #1da1f2;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+
+        .buttons button:hover {
+            background-color: #148cc0;
+        }
+
+        .add-button {
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            background-color: #1da1f2;
+            border: none;
+            color: #fff;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 30px;
+            border-radius: 17px;
+            text-decoration: none;
+            height: 50px; 
+        }
+        
+        .add-button:hover {
+            background-color: #148cc0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div>
+          <div class="logo" onclick="window.location.href='home.html';"><span style="color: white">City</span>Insight</div>
+          <a href="posttext.html" class="add-button">+ CREATE POST</a>
+          <a href="home.html"><i class="fas fa-users"></i>&nbsp;Community</a>
+          <a href="profile.html" class="active"><i class="fas fa-user-circle" style="margin-right: 10px;"></i>&nbsp;Profile</a>
+          <a href="#"><i class="fas fa-bell" style="margin-right: 10px;"></i>&nbsp;Notifications</a>
+          <a href="#"><i class="fas fa-envelope"></i>&nbsp;Messages</a>
+          <a href="crimes.html"><i class="fas fa-exclamation-triangle" style="margin-right: 10px;"></i>&nbsp;Crimes</a>
+          <a href="#"><i class="fas fa-exclamation-triangle" style="margin-right: 10px;"></i>&nbsp;Natural Disaster</a>
+          <a href="flood.html"><i class="fas fa-cloud-showers-heavy" style="margin-right: 10px;"></i>&nbsp;Flood</a>
+          <a href="#"><i class="fas fa-cog" style="margin-right: 10px;"></i>&nbsp;Services</a>
+          <a href="#"><i class="fas fa-info-circle" style="margin-right: 10px;"></i>&nbsp;About</a>
+          <a href="login.html"><i class="fas fa-sign-out" style="margin-right: 10px;"></i>&nbsp;Logout</a>
+        </div>
+    </div>
+
+    <div class="content">
+        <h2>Create post</h2>
+        
+
+        <div class="tabs">
+            <div class="tab"><a href="posttext.html">Text</a></div>
+            <div class="tab"><a href="postimage.html">Images & Video</a></div>
+            <div class="tab active">Link</div>
+        </div>
+        
+
+        <div class="form-group">
+            <input type="text" placeholder="Title" required>
+        </div>
+        
+        <div class="form-group">
+            <textarea placeholder="Link URL"></textarea>
+        </div>
+        
+
+        <div class="buttons">
+            <button>Save Draft</button>
+            <button>Post</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js" crossorigin="anonymous"></script>
+</body>
+</html>

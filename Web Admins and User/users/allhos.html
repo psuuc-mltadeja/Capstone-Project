@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CityInsight</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #222;
+            color: #fff;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 250px;
+            position: fixed;
+            z-index: 100;
+            height: 100vh;
+            background-color: #1a1a1a;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            font-size: 18px;
+        }
+
+        .sidebar a:hover {
+            color: #1da1f2;
+        }
+
+        .sidebar a i {
+            margin-right: 10px;
+        }
+
+        .sidebar .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1da1f2;
+            margin-bottom: 30px;
+            cursor: pointer;
+        }
+
+        .logout {
+            color: #1da1f2;
+            cursor: pointer;
+        }
+
+        .sidebar #active {
+            color: #1da1f2;
+            font-weight: bold;
+        }
+
+        #map {
+            height: 100vh;
+            width: calc(100% - 250px);
+            background-color: #eaeaea;
+            position: relative;
+            right: -250px;
+        }
+
+        .add-button {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #1da1f2;
+            border: none;
+            color: #fff;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 30px;
+            border-radius: 17px;
+            text-decoration: none;
+            height: 50px;
+        }
+
+        .add-button:hover {
+            background-color: #148cc0;
+        }
+
+        .show-all-button {
+            background-color: #e01010;
+        }
+
+        .show-all-button:hover {
+            background-color: #c01010;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <div>
+            <div class="logo" onclick="window.location.href='home.html';">
+                <span style="color: white">City</span>Insight
+            </div>
+            <a href="posttext.html" class="add-button">
+                <i class="fas fa-plus-circle"></i>&nbsp; CREATE POST
+            </a>
+       
+            <a href="hospitals.html">
+                <i class="fas fa-map"></i>&nbsp; Hospitals
+            </a>
+     
+            <!-- New button to show all evacuation areas -->
+            <a href="#" id="showAllEvacs" class="add-button show-all-button">
+                <i class="fas fa-map-marker-alt"></i>&nbsp; Show All Hospitals
+            </a>
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-firestore-compat.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+
+    <!-- Leaflet Routing Machine -->
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.2/dist/leaflet-routing-machine.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCYF9a_WvqUwBULYc8MXos_nba-_mrW17U",
+            authDomain: "cityinsight-61c09.firebaseapp.com",
+            projectId: "cityinsight-61c09",
+            storageBucket: "cityinsight-61c09.appspot.com",
+            messagingSenderId: "230924032629",
+            appId: "1:230924032629:web:5b0b7e10e88959a3db763c",
+            measurementId: "G-VV7WJRCEZ0"
+        };
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        var map = L.map('map').setView([15.9805, 120.5581], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+        }).addTo(map);
+
+        // Function to fetch and display all evacuation areas with routes (via roads)
+        function loadAllEvacuationAreas() {
+            // Clear any previous markers and routes
+            map.eachLayer(function(layer) {
+                if (layer instanceof L.Marker || layer instanceof L.Polyline) {
+                    map.removeLayer(layer);
+                }
+            });
+
+            // Get user's location
+            navigator.geolocation.getCurrentPosition(function(position) {
+                const userLat = position.coords.latitude;
+                const userLng = position.coords.longitude;
+                const userLocation = L.latLng(userLat, userLng);
+
+                db.collection("hospitals").get().then((querySnapshot) => {
+                    querySnapshot.forEach((doc) => {
+                        const evacData = doc.data();
+                        const evacLat = evacData.latitude;
+                        const evacLng = evacData.longitude;
+
+                        // Add marker for each evacuation area
+                        const evacLocation = L.latLng(evacLat, evacLng);
+                        L.marker([evacLat, evacLng]).addTo(map)
+                            .bindPopup('<strong>Evacuation Area</strong>');
+
+                        // Use Leaflet Routing Machine to calculate the route based on roads
+                        L.Routing.control({
+                            waypoints: [userLocation, evacLocation],
+                            routeWhileDragging: true,
+                        }).addTo(map);
+                    });
+                }).catch((error) => {
+                    console.error("Error fetching evacuation areas: ", error);
+                });
+            });
+        }
+
+        // Event listener for showing all evacuation areas with routes when the button is clicked
+        document.getElementById('showAllEvacs').addEventListener('click', function() {
+            loadAllEvacuationAreas();
+        });
+    </script>
+</body>
+
+</html>

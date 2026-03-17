@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Details</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #007bff;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .details {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 20px;
+            background-color: #f1f1f1;
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .details p {
+            margin: 10px 0;
+        }
+
+        .details p strong {
+            color: #007bff;
+        }
+
+        #map {
+            height: 400px;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            padding: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 14px;
+            color: #888;
+        }
+
+        .footer a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Report Details</h1>
+
+        <div class="details" id="details"></div>
+
+        <div class="image-container" id="image-container"></div>
+
+        <div id="map"></div>
+
+        <div class="footer">
+            <p><a href="javascript:history.back()">Go Back</a></p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "API_KEY",
+            authDomain: "cityinsight-61c09.firebaseapp.com",
+            projectId: "cityinsight-61c09",
+            storageBucket: "cityinsight-61c09.appspot.com",
+            messagingSenderId: "230924032629",
+            appId: "APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function loadReportDetails() {
+            const reportId = localStorage.getItem("reportId");
+            if (!reportId) {
+                document.body.innerHTML = "<p>Report ID not found!</p>";
+                return;
+            }
+
+            const docRef = doc(db, "reports", reportId);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                document.getElementById("details").innerHTML = `
+                    <p><strong>Title:</strong> ${data.title}</p>
+                    <p><strong>Body:</strong> ${data.body}</p>
+                    <p><strong>Username:</strong> ${data.username}</p>
+                    <p><strong>Date:</strong> ${data.date?.toDate().toLocaleDateString() || 'No Date'}</p>
+                    <p><strong>Latitude:</strong> ${data.latitude}</p>
+                    <p><strong>Longitude:</strong> ${data.longitude}</p>
+                `;
+
+                if (data.imageUrl) {
+                    document.getElementById("image-container").innerHTML = `
+                        <h3>Uploaded Image</h3>
+                        <img src="${data.imageUrl}" alt="Report Image">
+                    `;
+                }
+
+                // Initialize Leaflet map
+                const map = L.map('map').setView([data.latitude, data.longitude], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+                L.marker([data.latitude, data.longitude]).addTo(map)
+                    .bindPopup(`<strong>${data.title}</strong>`)
+                    .openPopup();
+            } else {
+                document.body.innerHTML = "<p>Report not found!</p>";
+            }
+        }
+
+        loadReportDetails();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archived Crime Data</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- DataTables CSS and JS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/body.css">
+    <style>
+        /* Your existing CSS styles here */
+        /* Reusing the same styling from your original code */
+
+
+
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            width: calc(100% - 250px);
+            background-color: #f4f6f9;
+        }
+
+        .main-content h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .top-bar {
+            background-color: #3498db;
+            color: white;
+            padding: 10px;
+            text-align: right;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .top-bar span {
+            margin-right: 20px;
+        }
+
+        @media screen and (max-width: 768px) {
+            .sidebar {
+                width: 60px;
+            }
+
+            .main-content {
+                margin-left: 60px;
+                width: calc(100% - 60px);
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .sidebar {
+                width: 0;
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+    </style>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+        import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCYF9a_WvqUwBULYc8MXos_nba-_mrW17U",
+            authDomain: "cityinsight-61c09.firebaseapp.com",
+            databaseURL: "https://cityinsight-61c09-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "cityinsight-61c09",
+            storageBucket: "cityinsight-61c09.appspot.com",
+            messagingSenderId: "230924032629",
+            appId: "1:230924032629:web:5b0b7e10e88959a3db763c",
+            measurementId: "G-VV7WJRCEZ0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        let archives = [];
+
+        // Ensure user is logged in
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = "login.html";
+            }
+        });
+
+        async function fetchArchivedCrimes() {
+            const archiveCollection = collection(db, "archive");
+            onSnapshot(archiveCollection, (snapshot) => {
+                archives = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                console.log("Fetched archived crimes:", archives); // Debugging log
+                renderArchiveTable();
+            });
+        }
+
+        function renderArchiveTable() {
+            const tableBody = document.getElementById("archiveTableBody");
+            tableBody.innerHTML = ""; 
+
+            archives.forEach(archive => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${archive.brgy}</td>
+                    <td>${archive.details}</td>
+              
+                    <td>${archive.type}</td>
+                    <td>
+                        <button onclick="confirmRestore('${archive.id}')">Restore</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            // Destroy the previous DataTable instance before reinitializing
+            if ($.fn.DataTable.isDataTable('#archiveTable')) {
+                $('#archiveTable').DataTable().destroy();
+            }
+
+            $('#archiveTable').DataTable(); // Reinitialize DataTable
+        }
+
+        // Confirmation dialog before restoring
+        window.confirmRestore = function(id) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This crime will be restored to the active database.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, restore it!',
+                cancelButtonText: 'No, cancel!',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    restoreCrime(id); // Call restoreCrime if confirmed
+                }
+            });
+        };
+
+        // Define restoreCrime in the global scope
+        window.restoreCrime = async function(id) {
+            try {
+                console.log(`Restoring crime with ID: ${id}`);  // Debugging log
+                const archiveRef = doc(db, "archive", id);
+                const archiveDoc = archives.find(archive => archive.id === id);
+                
+                console.log(`Fetched archive document:`, archiveDoc); // Debugging log
+
+                // Ensure the document exists in the archives
+                if (!archiveDoc) {
+                    throw new Error("Archive document not found.");
+                }
+
+                // Add to "crimes" collection
+                await addDoc(collection(db, "crimes"), {
+                    brgy: archiveDoc.brgy,
+                    details: archiveDoc.details,
+                    latitude: archiveDoc.latitude,
+                    longitude: archiveDoc.longitude,
+                    type: archiveDoc.type
+                });
+
+                console.log(`Document restored to crimes collection successfully`); // Debugging log
+
+                // Delete from "archive" collection
+                await deleteDoc(archiveRef);
+                
+                console.log(`Document deleted from archive collection successfully`); // Debugging log
+                
+                Swal.fire('Restored!', 'The crime has been restored to the active database.', 'success');
+
+                // Refresh the archived crimes table
+                fetchArchivedCrimes(); // Call to refresh the table
+            } catch (error) {
+                console.error("Error restoring crime:", error); // Log the error
+                Swal.fire('Error', 'There was an issue restoring the crime. Please try again.', 'error');
+            }
+        };
+
+        window.onload = fetchArchivedCrimes;
+    </script>
+</head>
+
+<body>
+    <div class="sidebar">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiY2opV-RQ_a3X86nC4cQ8rNlNBtFkBoHKTw&s" alt="Logo" class="logo">
+        <p style="text-align:center">Admin Menard</p>
+        <ul>
+            <li><a href="dashboard.html"> <i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+            <li><a href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a></li>
+            <li><a href="users.html"><i class="fas fa-users"></i> Users</a></li>
+            <li><a href="barangay.html"><i class="fas fa-map-marker-alt"></i> Barangays</a></li>
+            <li><a href="crimes.html"><i class="fas fa-file-alt"></i> Crime Reports</a></li>
+            <li><a href="crime_adding.html"><i class="fas fa-plus-circle"></i> Adding Crime Reports</a></li>
+            <li><a href="archived.html"><i class="fas fa-archive"></i> Archived</a></li>
+            <li><a href="floods.html"><i class="fas fa-tint"></i> Flood Reports</a></li>
+            <li><a href="flood_adding.html"><i class="fas fa-plus-square"></i> Adding Flood Reports</a></li>
+            <li><a href="reports.html"><i class="fas fa-bell"></i> Incident Reports <span id="pendingReportsCount" class="pending-badge">0</span></a></li>
+            <li><a href="sos.html"><i class="fas fa-ambulance"></i> SOS Reports</a></li>
+            <li><a href="testimonials.html"><i class="fas fa-comments"></i> Testimonials</a></li>
+            <li><a href="logout.html" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </div>
+    <div class="main-content">
+        <div class="top-bar">
+            <span>Welcome, User!</span>
+        </div>
+        <h1>Archived Crime Data</h1>
+        <table id="archiveTable">
+            <thead>
+                <tr>
+                    <th>Brgy</th>
+                    <th>Details</th>
+               
+                    <th>Type</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="archiveTableBody">
+                <!-- Archived crimes will be populated here -->
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
+        

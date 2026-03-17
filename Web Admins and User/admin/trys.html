@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crime and Barangay Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    
+    <!-- Chart.js for displaying graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/body.css">
+    <style>
+      
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            flex: 1;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #34495e;
+        }
+
+        .content-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            background-color: #ffffff;
+            border-radius: 8px;
+        }
+
+        .chart-container {
+            width: 80%;
+            padding: 20px;
+        }
+        #legend-container {
+    display: flex;
+    flex-direction: column; /* Arrange legends in a column */
+    align-items: flex-start; /* Align items to the start of the container */
+    gap: 10px; /* Space between each legend */
+    margin-bottom: 20px;
+    max-height: 200px; /* Optional: Limit the height if many items */
+    overflow-y: auto; /* Optional: Enable scrolling for long lists */
+}
+
+
+        #legend-container div {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #legend-container div div {
+            width: 16px;
+            height: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            width: 50%;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .logo {
+            width: 100px;
+            height: auto;
+            display: block;
+            margin: 0 auto 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiY2opV-RQ_a3X86nC4cQ8rNlNBtFkBoHKTw&s" alt="Logo" class="logo">
+        <p style="text-align:center">Admin Menard</p>
+        <ul>
+            <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+            <li><a href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a></li>
+            <li><a href="users.html"><i class="fas fa-users"></i> Users</a></li>
+            <li><a href="barangay.html"><i class="fas fa-map-marker-alt"></i> Barangays</a></li>
+            <li><a href="crimes.html"><i class="fas fa-file-alt"></i> Crime Reports</a></li>
+            <li><a href="crime_adding.html"><i class="fas fa-plus-circle"></i> Adding Crime Reports</a></li>
+            <li><a href="archived.html"><i class="fas fa-archive"></i> Archived</a></li>
+            <li><a href="floods.html"><i class="fas fa-tint"></i> Flood Reports</a></li>
+            <li><a href="flood_adding.html"><i class="fas fa-plus-square"></i> Adding Flood Reports</a></li>
+            <li><a href="reports.html"><i class="fas fa-bell"></i> Incident Reports <span id="pendingReportsCount" class="pending-badge">0</span></a></li>
+            <li><a href="sos.html"><i class="fas fa-ambulance"></i> SOS Reports</a></li>
+            <li><a href="testimonials.html"><i class="fas fa-comments"></i> Testimonials</a></li>
+            <li><a href="logout.html" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <h1>Crime and Barangay Analytics</h1>
+        <div class="content-container">
+            <!-- Legend for the crime types -->
+          <!-- Replace the current #legend-container with a dropdown -->
+<div id="legend-container">
+    <label for="barangay-select">Select Barangay:</label>
+    <select id="barangay-select">
+        <!-- Options will be dynamically added here -->
+    </select>
+</div>
+
+
+            <!-- First chart: Crime types across Barangays -->
+            <div class="chart-container">
+                <canvas id="crimeTypeChart"></canvas>
+            </div>
+
+            <!-- Second chart: Crime count per Barangay -->
+            <div class="chart-container">
+                <canvas id="barangayChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCYF9a_WvqUwBULYc8MXos_nba-_mrW17U",
+            authDomain: "cityinsight-61c09.firebaseapp.com",
+            projectId: "cityinsight-61c09",
+            storageBucket: "cityinsight-61c09.appspot.com",
+            messagingSenderId: "230924032629",
+            appId: "1:230924032629:web:5b0b7e10e88959a3db763c",
+            measurementId: "G-VV7WJRCEZ0"
+        };
+
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        let crimes = [];
+
+        async function fetchCrimeData() {
+            const crimesCollection = collection(db, "crimes");
+            onSnapshot(crimesCollection, (snapshot) => {
+                crimes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderCrimeTypeChart();
+                renderBarangayChart();
+            });
+        }
+
+        function renderCrimeTypeChart() {
+            const crimeCounts = {};
+            crimes.forEach(crime => {
+                const { type } = crime;
+                if (!crimeCounts[type]) crimeCounts[type] = 0;
+                crimeCounts[type]++;
+            });
+
+            const labels = Object.keys(crimeCounts);
+            const colors = labels.map(label => getColor(label));
+            const data = {
+                labels,
+                datasets: [{
+                    label: 'Crime Types',
+                    data: labels.map(label => crimeCounts[label]),
+                    backgroundColor: colors,
+                    borderColor: colors,
+                    borderWidth: 1
+                }]
+            };
+
+            if (window.myCrimeChart) {
+                window.myCrimeChart.destroy();
+            }
+
+            const ctx = document.getElementById("crimeTypeChart").getContext("2d");
+            window.myCrimeChart = new Chart(ctx, {
+                type: "bar",
+                data: data,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }, // Disable Chart.js legend
+                        title: { display: true, text: "Crime Types Across Barangays" }
+                    },
+                    scales: {
+                        x: { stacked: true },
+                        y: { beginAtZero: true, stacked: true }
+                    }
+                }
+            });
+
+            renderLegend(labels, colors);
+        }
+
+        function renderBarangayChart() {
+    const barangayCounts = {};
+    crimes.forEach(crime => {
+        const { brgy } = crime;
+        if (!barangayCounts[brgy]) barangayCounts[brgy] = 0;
+        barangayCounts[brgy]++;
+    });
+
+    const labels = Object.keys(barangayCounts);
+    
+    // Generate unique colors for each Barangay
+    const colors = labels.map(() => getRandomColor());
+
+    const data = {
+        labels,
+        datasets: [{
+            label: 'Crimes Per Barangay',
+            data: labels.map(label => barangayCounts[label]),
+            backgroundColor: colors,
+            borderColor: colors,
+            borderWidth: 1
+        }]
+    };
+
+    if (window.myBarangayChart) {
+        window.myBarangayChart.destroy();
+    }
+
+    const ctx = document.getElementById("barangayChart").getContext("2d");
+    window.myBarangayChart = new Chart(ctx, {
+        type: "pie",
+        data: data,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: true },
+                title: { display: true, text: "Crimes Per Barangay" }
+            }
+        }
+    });
+}
+
+// Function to generate a random color
+function getRandomColor() {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
+
+        function renderLegend(labels, colors) {
+            const legendContainer = document.getElementById("legend-container");
+            legendContainer.innerHTML = ""; // Clear previous legends
+            labels.forEach((label, index) => {
+                const legendItem = document.createElement("div");
+                legendItem.style.display = "flex";
+                legendItem.style.alignItems = "center";
+                legendItem.style.gap = "8px";
+
+                const colorBox = document.createElement("div");
+                colorBox.style.backgroundColor = colors[index];
+
+                const labelText = document.createElement("span");
+                labelText.textContent = label;
+
+                legendItem.appendChild(colorBox);
+                legendItem.appendChild(labelText);
+                legendContainer.appendChild(legendItem);
+            });
+        }
+
+        function getColor(label) {
+            const colors = [
+                "#e74c3c", "#3498db", "#f1c40f", "#2ecc71",
+                "#9b59b6", "#34495e", "#95a5a6", "#e67e22"
+            ];
+            return colors[label.charCodeAt(0) % colors.length];
+        }
+
+        fetchCrimeData();
+    </script>
+</body>
+</html>

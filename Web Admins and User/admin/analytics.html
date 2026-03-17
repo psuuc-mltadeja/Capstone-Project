@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crime Type Chart</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+
+    <!-- Chart.js for displaying graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/body.css">
+    <style>
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #34495e;
+        }
+
+        .totals-container {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+            background-color: #ecf0f1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .content-container {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            background-color: #ffffff;
+            border-radius: 8px;
+        }
+        
+        .chart-container {
+            flex: 3;
+            padding: 2px;
+        }
+
+        .legend-table-container {
+            flex: 1;
+            max-height: 700px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            background-color: #f8f9fa;
+        }
+
+        .legend-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .legend-table th, .legend-table td {
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        .legend-color-box {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            border-radius: 4px;
+            margin-right: 8px;
+        }
+
+        /* Styles for the buttons */
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            width: 50%;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .logo {
+            width: 100px;
+            height: auto;
+            display: block;
+            margin: 0 auto 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiY2opV-RQ_a3X86nC4cQ8rNlNBtFkBoHKTw&s" alt="Logo" class="logo">
+        <p style="text-align:center">Admin Menard</p>
+        <ul>
+            <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+            <li><a href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a></li>
+            <li><a href="trys.html"><i class="fas fa-chart-line"></i> Summary</a></li>
+            <li><a href="users.html"><i class="fas fa-users"></i> Users</a></li>
+            <li><a href="barangay.html"><i class="fas fa-map-marker-alt"></i> Barangays</a></li>
+            <li><a href="crimes.html"><i class="fas fa-file-alt"></i> Crime Reports</a></li>
+            <li><a href="crime_adding.html"><i class="fas fa-plus-circle"></i> Adding Crime Reports</a></li>
+            <li><a href="archived.html"><i class="fas fa-archive"></i> Archived</a></li>
+            <li><a href="floods.html"><i class="fas fa-tint"></i> Flood Reports</a></li>
+            <li><a href="flood_adding.html"><i class="fas fa-plus-square"></i> Adding Flood Reports</a></li>
+            <li><a href="reports.html"><i class="fas fa-bell"></i> Incident Reports <span id="pendingReportsCount" class="pending-badge">0</span></a></li>
+            <li><a href="sos.html"><i class="fas fa-ambulance"></i> SOS Reports</a></li>
+            <li><a href="testimonials.html"><i class="fas fa-comments"></i> Testimonials</a></li>
+            <li><a href="logout.html" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </div>
+<style>
+    .dropdown-container {
+    display: flex;
+    gap: 20px; /* Space between dropdowns */
+  
+    margin-bottom: 20px; /* Space below the dropdowns */
+}
+
+.dropdown-container label {
+    font-weight: bold;
+    margin-right: 10px; /* Space between label and dropdown */
+}
+
+</style>
+    <div class="main-content">
+        <h1>Crime Types in Each Barangay</h1>
+        <div class="dropdown-container">
+            <label for="monthSelect">Select Month:</label>
+            <select id="monthSelect">
+                <option value="">--Select Month--</option>
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3">March</option>
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+            </select>
+  
+            <label for="yearSelect">Select Year:</label>
+            
+            <select id="yearSelect">
+                <option value="">--Select Year--</option>
+                <option value="2024">2024</option>
+                <option value="2023">2023</option>
+                <option value="2022">2022</option>
+                <option value="2021">2021</option>
+                <option value="2020">2020</option>
+            </select>
+        </div>
+        
+        <div id="totals" class="totals-container">
+            <div class="total-card">
+                <p class="total-title">Total Users</p>
+                <p id="totalUsers" class="total-count">0</p>
+            </div>
+            <div class="total-card">
+                <p class="total-title">Total Crimes</p>
+                <p id="totalCrimes" class="total-count">0</p>
+            </div>
+            <div class="total-card">
+                <p class="total-title">Total Floods</p>
+                <p id="totalFloods" class="total-count">0</p>
+            </div>
+            <div class="total-card">
+                <p class="total-title">Total Reports</p>
+                <p id="totalReports" class="total-count">0</p>
+            </div>
+        </div>
+        
+        <style>
+            .totals-container {
+                display: flex;
+                justify-content: space-around;
+                margin-bottom: 20px;
+                gap: 20px;
+                flex-wrap: wrap;
+            }
+        
+            .total-card {
+                flex: 1;
+                max-width: 200px;
+                background-color: #ffffff;
+                border-radius: 8px;
+                padding: 20px;
+                text-align: center;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                transition: transform 0.2s;
+            }
+        
+            .total-card:hover {
+                transform: translateY(-5px);
+            }
+        
+            .total-title {
+                font-size: 16px;
+                font-weight: bold;
+                margin-bottom: 10px;
+                color: #34495e;
+            }
+        
+            .total-count {
+                font-size: 24px;
+                font-weight: bold;
+                color: #2c3e50;
+            }
+        </style>
+        
+        <div class="content-container">
+            <div class="chart-container">
+                <canvas id="crimeChart"></canvas>
+            </div>
+            <div class="legend-table-container">
+                <table class="legend-table" id="legendTable">
+                    <thead>
+                        <tr>
+                            <th>Crime Type</th>
+                            <th>Color</th>
+                        </tr>
+                    </thead>
+                    <tbody id="legendTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+        import { getFirestore, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "API_KEY",
+            authDomain: "cityinsight-61c09.firebaseapp.com",
+            databaseURL: "https://cityinsight-61c09-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "cityinsight-61c09",
+            storageBucket: "cityinsight-61c09.appspot.com",
+            messagingSenderId: "230924032629",
+            appId: "1:230924032629:web:5b0b7e10e88959a3db763c",
+            measurementId: "G-VV7WJRCEZ0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        let crimes = [];
+
+        async function fetchCounts() {
+            const collections = ["users", "crimes", "floods", "reports"];
+            for (const collectionName of collections) {
+                const col = collection(db, collectionName);
+                const snapshot = await getDocs(col);
+                document.getElementById(`total${capitalize(collectionName)}`).textContent = snapshot.size;
+            }
+        }
+
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        async function fetchCrimeData() {
+            const crimesCollection = collection(db, "crimes");
+            onSnapshot(crimesCollection, (snapshot) => {
+                crimes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderChart();
+            });
+        }
+
+        function renderChart() {
+            const crimeCounts = {};
+            crimes.forEach(crime => {
+                const { brgy, type } = crime;
+                if (!crimeCounts[brgy]) crimeCounts[brgy] = {};
+                if (!crimeCounts[brgy][type]) crimeCounts[brgy][type] = 0;
+                crimeCounts[brgy][type]++;
+            });
+
+            const labels = Object.keys(crimeCounts);
+            const crimeTypes = [...new Set(crimes.map(crime => crime.type))];
+            const datasets = crimeTypes.map(type => ({
+                label: type,
+                data: labels.map(brgy => crimeCounts[brgy][type] || 0),
+                backgroundColor: getColor(type),
+                borderColor: getColor(type),
+                borderWidth: 1
+            }));
+
+            if (window.myChart) {
+                window.myChart.destroy();
+            }
+
+            const ctx = document.getElementById("crimeChart").getContext("2d");
+            window.myChart = new Chart(ctx, {
+                type: "bar",
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: true, text: "Number of Crime Types in Each Barangay" }
+                    },
+                    scales: {
+                        x: { stacked: true },
+                        y: { beginAtZero: true, stacked: true }
+                    }
+                }
+            });
+
+            renderLegendTable(datasets);
+        }
+
+        function getColor(type) {
+            const colors = {
+                "Theft": "#3498db",
+                "Assault": "#e74c3c",
+                "Burglary": "#2ecc71",
+                "Robbery": "#f39c12",
+                "Vandalism": "#9b59b6",
+            };
+            return colors[type] || getRandomColor();
+        }
+
+        function renderLegendTable(datasets) {
+            const legendTableBody = document.getElementById("legendTableBody");
+            legendTableBody.innerHTML = "";
+            datasets.forEach(dataset => {
+                const row = document.createElement("tr");
+
+                const crimeTypeCell = document.createElement("td");
+                crimeTypeCell.textContent = dataset.label;
+
+                const colorCell = document.createElement("td");
+                const colorBox = document.createElement("span");
+                colorBox.classList.add("legend-color-box");
+                colorBox.style.backgroundColor = dataset.backgroundColor;
+                colorCell.appendChild(colorBox);
+
+                row.appendChild(crimeTypeCell);
+                row.appendChild(colorCell);
+                legendTableBody.appendChild(row);
+            });
+        }
+
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        window.onload = () => {
+            fetchCrimeData();
+            fetchCounts();
+        };
+    </script>
+</body>
+</html>

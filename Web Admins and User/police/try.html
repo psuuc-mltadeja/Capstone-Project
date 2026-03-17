@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crime Data Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- DataTables CSS and JS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <style>
+        /* Styles for the layout */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            height: 100vh;
+            background-color: #f4f6f9;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: #34495e;
+            color: white;
+            position: fixed;
+            height: 100%;
+            padding-top: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            font-size: 20px;
+            color: #ecf0f1;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .sidebar ul li {
+            padding: 15px 20px;
+            border-bottom: 1px solid #2c3e50;
+            font-size: 16px;
+        }
+
+        .sidebar ul li a {
+            color: #ecf0f1;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar ul li a:hover {
+            background-color: #2c3e50;
+            cursor: pointer;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            width: calc(100% - 250px);
+            background-color: #f4f6f9;
+        }
+
+        .main-content h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        #updateForm {
+            display: none;
+            padding: 20px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            max-width: 500px;
+            margin-bottom: 20px;
+        }
+
+        #updateForm input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        #updateForm button {
+            width: 100%;
+            background-color: #27ae60;
+        }
+
+        #updateForm button:hover {
+            background-color: #2ecc71;
+        }
+
+        .top-bar {
+            background-color: #3498db;
+            color: white;
+            padding: 10px;
+            text-align: right;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .top-bar span {
+            margin-right: 20px;
+        }
+
+        /* Add this for aligning buttons in a row */
+        .button-container {
+            display: flex;
+            justify-content: space-around; /* Distribute space evenly between buttons */
+        }
+
+        .button-container button {
+            margin: 0 5px; /* Add spacing between buttons */
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            font-size: 14px;
+        }
+
+        .button-container button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, deleteDoc, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCYF9a_WvqUwBULYc8MXos_nba-_mrW17U",
+            authDomain: "cityinsight-61c09.firebaseapp.com",
+            databaseURL: "https://cityinsight-61c09-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "cityinsight-61c09",
+            storageBucket: "cityinsight-61c09.appspot.com",
+            messagingSenderId: "230924032629",
+            appId: "1:230924032629:web:5b0b7e10e88959a3db763c",
+            measurementId: "G-VV7WJRCEZ0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let crimes = [];
+        let filteredCrimes = [];
+        let crimeTypes = new Set();
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = "login.html";
+            }
+        });
+
+        async function fetchCrimes() {
+            const crimesCollection = collection(db, "crimes");
+            onSnapshot(crimesCollection, (snapshot) => {
+                crimes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                crimeTypes.clear();
+                crimes.forEach(crime => {
+                    if (crime.type) {
+                        crimeTypes.add(crime.type);
+                    }
+                });
+
+                renderTypeDropdown();
+                filteredCrimes = crimes;
+                renderTable();
+            });
+        }
+
+        function renderTypeDropdown() {
+            const typeSelect = document.getElementById("typeSelect");
+            typeSelect.innerHTML = '<option value="">All Types</option>';
+            crimeTypes.forEach(type => {
+                const option = document.createElement("option");
+                option.value = type;
+                option.textContent = type;
+                typeSelect.appendChild(option);
+            });
+        }
+
+        function filterByMonth() {
+            const monthSelect = document.getElementById("monthSelect");
+            const selectedMonth = monthSelect.value;
+            const typeSelect = document.getElementById("typeSelect");
+            const selectedType = typeSelect.value;
+
+            filteredCrimes = crimes.filter(crime => {
+                const crimeDate = crime.date && typeof crime.date === 'object' && crime.date.toDate ? crime.date.toDate() : new Date(crime.date);
+                const monthMatch = selectedMonth === "" || crimeDate.getMonth() === parseInt(selectedMonth);
+                const typeMatch = selectedType === "" || crime.type === selectedType;
+                return monthMatch && typeMatch;
+            });
+
+            renderTable();
+        }
+
+        window.filterByMonth = filterByMonth;
+
+        function renderTable() {
+    const tableBody = document.getElementById("crimeTableBody");
+    tableBody.innerHTML = "";
+    filteredCrimes.forEach(crime => {
+        const row = document.createElement("tr");
+        row.setAttribute('data-id', crime.id); // Set the data-id attribute
+        row.innerHTML = `
+            <td>${crime.brgy}</td>
+            <td>${crime.date && crime.date.toDate ? crime.date.toDate().toLocaleDateString() : new Date(crime.date).toLocaleDateString()}</td>
+            <td>${crime.latitude}</td>
+            <td>${crime.longitude}</td>
+            <td>${crime.type}</td>
+            <td>
+                <button onclick="openUpdateForm('${crime.id}')">Edit</button>
+                <button onclick="archiveCrime('${crime.id}')">Archive</button>
+            </td>
+        `;
+        tableBody.appendChild(row);
+    });
+
+    $('#crimeTable').DataTable();
+}
+
+
+        async function archiveCrime(id) {
+            const result = await Swal.fire({
+                title: 'Are you sure?',
+                text: "This will archive the crime record!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, archive it!'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const crimeToArchive = crimes.find(crime => crime.id === id);
+
+                    // Add the crime record to the archive collection
+                    await setDoc(doc(db, "archive", id), crimeToArchive);
+                    // Delete the crime record from the original collection
+                    await deleteDoc(doc(db, "crimes", id));
+
+                    Swal.fire('Archived!', 'The crime record has been archived.', 'success');
+                } catch (error) {
+                    console.error("Error archiving document: ", error);
+                    Swal.fire('Error!', 'There was an issue archiving the crime record.', 'error');
+                }
+            }
+        }
+
+        window.archiveCrime = archiveCrime;
+
+        async function openUpdateForm(id) {
+            const crimeToUpdate = crimes.find(crime => crime.id === id);
+
+            document.getElementById("updateId").value = crimeToUpdate.id;
+            document.getElementById("updateBrgy").value = crimeToUpdate.brgy;
+            document.getElementById("updateDate").value = crimeToUpdate.date.toDate().toISOString().split('T')[0];
+            document.getElementById("updateLatitude").value = crimeToUpdate.latitude;
+            document.getElementById("updateLongitude").value = crimeToUpdate.longitude;
+            document.getElementById("updateType").value = crimeToUpdate.type;
+
+            document.getElementById("updateForm").style.display = "block";
+        }
+
+        window.openUpdateForm = openUpdateForm;
+
+        async function updateCrime() {
+    const id = document.getElementById("updateId").value;
+    const updatedData = {
+        brgy: document.getElementById("updateBrgy").value,
+        date: new Date(document.getElementById("updateDate").value),
+        latitude: parseFloat(document.getElementById("updateLatitude").value),
+        longitude: parseFloat(document.getElementById("updateLongitude").value),
+        type: document.getElementById("updateType").value
+    };
+
+    try {
+        // Update the document in Firestore
+        await updateDoc(doc(db, "crimes", id), updatedData);
+
+        // Update the data locally in the `crimes` array
+        const crimeIndex = crimes.findIndex(crime => crime.id === id);
+        if (crimeIndex !== -1) {
+            crimes[crimeIndex] = { id, ...updatedData };
+        }
+
+        // Find the row to update in the table
+        const row = document.querySelector(`#crimeTableBody tr[data-id='${id}']`);
+        if (row) {
+            row.querySelector('td:nth-child(1)').textContent = updatedData.brgy;
+            row.querySelector('td:nth-child(2)').textContent = updatedData.date.toLocaleDateString();
+            row.querySelector('td:nth-child(3)').textContent = updatedData.latitude;
+            row.querySelector('td:nth-child(4)').textContent = updatedData.longitude;
+            row.querySelector('td:nth-child(5)').textContent = updatedData.type;
+        }
+
+        Swal.fire('Updated!', 'The crime record has been updated.', 'success');
+        document.getElementById("updateForm").style.display = "none";
+    } catch (error) {
+        console.error("Error updating document: ", error);
+        Swal.fire('Error!', 'There was an issue updating the crime record.', 'error');
+    }
+}
+
+        window.updateCrime = updateCrime;
+
+        document.addEventListener("DOMContentLoaded", fetchCrimes);
+    </script>
+</head>
+
+<body>
+    <div class="sidebar">
+        <h2>City Insight</h2>
+        <ul>
+            <li><a href="#">Dashboard</a></li>
+            <li><a href="#">Manage Crimes</a></li>
+            <li><a href="#">Statistics</a></li>
+            <li><a href="#">Settings</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <span>User: Admin</span>
+            <button onclick="window.location.href='login.html'">Log Out</button>
+        </div>
+
+        <h1>Crime Data</h1>
+
+        <div class="filters">
+            <select id="monthSelect" onchange="filterByMonth()">
+                <option value="">Select Month</option>
+                <option value="0">January</option>
+                <option value="1">February</option>
+                <option value="2">March</option>
+                <!-- Add more months here -->
+            </select>
+
+            <select id="typeSelect" onchange="filterByMonth()">
+                <option value="">All Types</option>
+                <!-- Options will be dynamically populated -->
+            </select>
+        </div>
+
+        <table id="crimeTable">
+            <thead>
+                <tr>
+                    <th>Barangay</th>
+                    <th>Date</th>
+                    <th>Latitude</th>
+                    <th>Longitude</th>
+                    <th>Crime Type</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="crimeTableBody">
+                <!-- Data will be rendered here -->
+            </tbody>
+        </table>
+
+        <!-- Update Form -->
+        <div id="updateForm">
+            <h3>Edit Crime</h3>
+            <input type="hidden" id="updateCrimeId">
+            <label>Barangay</label>
+            <input type="text" id="updateBrgy">
+            <label>Date</label>
+            <input type="date" id="updateDate">
+            <label>Latitude</label>
+            <input type="text" id="updateLatitude">
+            <label>Longitude</label>
+            <input type="text" id="updateLongitude">
+            <label>Crime Type</label>
+            <input type="text" id="updateType">
+            <button type="button" onclick="updateCrime()">Update Crime</button>
+            <button type="button" onclick="closeUpdateForm()">Cancel</button>
+        </div>
+    </div>
+</body>
+
+</html>

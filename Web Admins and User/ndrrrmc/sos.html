@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOS Requests - Urdaneta City</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/body.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js"></script>
+    <style>
+        table {
+            margin-top: 20px;
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table th, table td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        table th {
+            background-color: #f4f4f4;
+        }
+        .button {
+            padding: 8px 15px;
+            font-size: 14px;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s ease;
+        }
+        .button.respond {
+            background-color: #f39c12;
+        }
+        .button.respond:hover {
+            background-color: #e67e22;
+
+        }
+        table th {
+    background-color: #2980b9; /* Blue color */
+    color: white; /* White text for better contrast */
+}
+
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiY2opV-RQ_a3X86nC4cQ8rNlNBtFkBoHKTw&s" alt="Logo" class="logo">
+        <p style="text-align:center">Admin Menard</p>
+        <ul>
+            <li><a href="dashboard.html"> <i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+            <li><a href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a></li>
+            <li><a href="users.html"><i class="fas fa-users"></i> Users</a></li>
+            <li><a href="barangay.html"><i class="fas fa-map-marker-alt"></i> Barangays</a></li>
+            <li><a href="crimes.html"><i class="fas fa-file-alt"></i> Crime Reports</a></li>
+            <li><a href="crime_adding.html"><i class="fas fa-plus-circle"></i> Adding Crime Reports</a></li>
+            <li><a href="archived.html"><i class="fas fa-archive"></i> Archived</a></li>
+            <li><a href="floods.html"><i class="fas fa-tint"></i> Flood Reports</a></li>
+            <li><a href="flood_adding.html"><i class="fas fa-plus-square"></i> Adding Flood Reports</a></li>
+            <li><a href="reports.html"><i class="fas fa-bell"></i> Incident Reports <span id="pendingReportsCount" class="pending-badge">0</span></a></li>
+            <li><a href="sos.html"><i class="fas fa-ambulance"></i> SOS Reports</a></li>
+            <li><a href="testimonials.html"><i class="fas fa-comments"></i> Testimonials</a></li>
+            <li><a href="logout.html" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </div>
+        
+    <div class="main-content">
+        <h2>SOS Requests</h2>
+        
+        <h3>Pending SOS Requests</h3>
+        <table id="sosRequestsTable" class="display">
+            <thead>
+                <tr>
+                    <th>Requester</th>
+                    <th>Latitude</th>
+                    <th>Longitude</th>
+                    <th>Timestamp</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Pending SOS request rows will be dynamically populated here -->
+            </tbody>
+        </table>
+    
+        <h3>Approved SOS Requests</h3>
+        <table id="approvedSOSRequestsTable" class="display">
+            <thead>
+                <tr>
+                    <th>Requester</th>
+                    <th>Latitude</th>
+                    <th>Longitude</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Approved SOS request rows will be dynamically populated here -->
+            </tbody>
+        </table>
+    </div>
+    
+
+<script type="module">
+  
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+    import { getFirestore, collection, getDocs, getDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCYF9a_WvqUwBULYc8MXos_nba-_mrW17U",
+        authDomain: "cityinsight-61c09.firebaseapp.com",
+        projectId: "cityinsight-61c09",
+        storageBucket: "cityinsight-61c09.appspot.com",
+        messagingSenderId: "230924032629",
+        appId: "1:230924032629:web:5b0b7e10e88959a3db763c",
+        measurementId: "G-VV7WJRCEZ0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function loadSOSRequests() {
+    const sosRequestsTableBody = document.querySelector('#sosRequestsTable tbody');
+    const approvedSOSRequestsTableBody = document.querySelector('#approvedSOSRequestsTable tbody');
+    sosRequestsTableBody.innerHTML = "";
+    approvedSOSRequestsTableBody.innerHTML = "";
+
+    const querySnapshot = await getDocs(collection(db, 'sosreqs'));
+
+    for (const docSnapshot of querySnapshot.docs) {
+        const data = docSnapshot.data();
+        const requestId = docSnapshot.id;
+        const userId = data.userId || 'Unknown';
+        const userName = await getUserName(userId);
+        const timestamp = data.timestamp?.toDate().toLocaleString() || 'No Timestamp';
+        const latitude = data.latitude || 'Unknown';
+        const longitude = data.longitude || 'Unknown';
+        const status = data.status || 'pending';
+
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+            <td>${userName}</td>
+            <td>${latitude}</td>
+            <td>${longitude}</td>
+            <td>${timestamp}</td>
+        `;
+
+        if (status === 'pending') {
+            newRow.innerHTML += `
+                <td>
+                    <button class="button view-map" onclick="viewMap('${latitude}', '${longitude}', '${userName}', '${timestamp}')">
+                        View Map
+                    </button>
+                    <button class="button respond" onclick="approveSOSRequest('${requestId}')">
+                        Approve
+                    </button>
+                </td>
+            `;
+            sosRequestsTableBody.appendChild(newRow);
+        } else if (status === 'approved') {
+            approvedSOSRequestsTableBody.appendChild(newRow);
+        }
+    }
+
+    // Initialize DataTables for both tables
+    $('#sosRequestsTable').DataTable();
+    $('#approvedSOSRequestsTable').DataTable();
+}
+
+async function getUserName(userId) {
+    if (userId === 'Unknown') return 'Unknown';
+    const userRef = doc(db, 'users', userId);
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+        const userData = userSnap.data();
+        const firstName = userData.firstname || '';
+        const lastName = userData.lastname || '';
+        return `${firstName} ${lastName}`.trim();
+    }
+    return 'Unknown User';
+}
+
+window.approveSOSRequest = async function(requestId) {
+    const requestRef = doc(db, 'sosreqs', requestId);
+
+    try {
+        await updateDoc(requestRef, { status: 'approved' });
+        Swal.fire({
+            icon: 'success',
+            title: 'Approved!',
+            text: 'The SOS request has been approved successfully.',
+        });
+        loadSOSRequests(); // Refresh the tables
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'There was an issue approving the SOS request.',
+        });
+        console.error("Error updating document: ", error);
+    }
+};
+
+
+window.viewMap = function(latitude, longitude, userName, timestamp) {
+    const mapUrl = `view-map.html?latitude=${latitude}&longitude=${longitude}&userName=${encodeURIComponent(userName)}&timestamp=${encodeURIComponent(timestamp)}`;
+    window.open(mapUrl, '_blank');
+};
+
+// Load the SOS requests on page load
+loadSOSRequests();
+
+</script>
+
+
+
+
+</body>
+</html>

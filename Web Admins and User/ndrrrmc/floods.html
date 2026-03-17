@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crime Data Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- DataTables CSS and JS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="../css/admin.css">
+<link rel="stylesheet" href="../css/body.css">
+    <style>
+ /* Add this to your CSS */
+/* Flexbox container for buttons to align them in a row */
+.button-container {
+    display: flex;
+    gap: 10px; /* Adds space between the buttons */
+    justify-content: flex-start; /* Align buttons to the left */
+    margin-top: 10px; /* Optional: Adds space between the inputs and the buttons */
+}
+
+button {
+    padding: 6px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #007bff;
+    color: white;
+}
+    </style>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, deleteDoc, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCYF9a_WvqUwBULYc8MXos_nba-_mrW17U",
+            authDomain: "cityinsight-61c09.firebaseapp.com",
+            databaseURL: "https://cityinsight-61c09-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "cityinsight-61c09",
+            storageBucket: "cityinsight-61c09.appspot.com",
+            messagingSenderId: "230924032629",
+            appId: "1:230924032629:web:5b0b7e10e88959a3db763c",
+            measurementId: "G-VV7WJRCEZ0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let crimes = [];
+        let filteredCrimes = [];
+        let crimeTypes = new Set();
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = "login.html";
+            }
+        });
+
+        async function fetchCrimes() {
+            const crimesCollection = collection(db, "floods");
+            onSnapshot(crimesCollection, (snapshot) => {
+                crimes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                crimeTypes.clear();
+                crimes.forEach(crime => {
+                    if (crime.type) {
+                        crimeTypes.add(crime.type);
+                    }
+                });
+
+                renderTypeDropdown();
+                filteredCrimes = crimes;
+                renderTable();
+            });
+        }
+
+        function renderTypeDropdown() {
+            const typeSelect = document.getElementById("typeSelect");
+            typeSelect.innerHTML = '<option value="">All Types</option>';
+            crimeTypes.forEach(type => {
+                const option = document.createElement("option");
+                option.value = type;
+                option.textContent = type;
+                typeSelect.appendChild(option);
+            });
+        }
+
+        function filterByMonth() {
+            const monthSelect = document.getElementById("monthSelect");
+            const selectedMonth = monthSelect.value;
+            const typeSelect = document.getElementById("typeSelect");
+            const selectedType = typeSelect.value;
+
+            filteredCrimes = crimes.filter(crime => {
+                const crimeDate = crime.date && typeof crime.date === 'object' && crime.date.toDate ? crime.date.toDate() : new Date(crime.date);
+                const monthMatch = selectedMonth === "" || crimeDate.getMonth() === parseInt(selectedMonth);
+                const typeMatch = selectedType === "" || crime.type === selectedType;
+                return monthMatch && typeMatch;
+            });
+
+            renderTable();
+        }
+
+        window.filterByMonth = filterByMonth;
+
+        function renderTable() {
+    const tableBody = document.getElementById("crimeTableBody");
+    tableBody.innerHTML = "";
+    filteredCrimes.forEach(crime => {
+        const row = document.createElement("tr");
+        row.setAttribute('data-id', crime.id); // Set the data-id attribute
+        row.innerHTML = `
+            <td>${crime.brgy}</td>
+            <td>${crime.date && crime.date.toDate ? crime.date.toDate().toLocaleDateString() : new Date(crime.date).toLocaleDateString()}</td>
+            <td>${crime.latitude}</td>
+            <td>${crime.longitude}</td>
+            <td>${crime.type}</td>
+        <td>
+    <div class="button-container">
+        <button onclick="openUpdateForm('${crime.id}')">Edit</button>
+
+    </div>
+</td>
+        `;
+        tableBody.appendChild(row);
+    });
+
+    $('#crimeTable').DataTable();
+}
+
+
+        async function archiveCrime(id) {
+            const result = await Swal.fire({
+                title: 'Are you sure?',
+                text: "This will archive the crime record!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, archive it!'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const crimeToArchive = crimes.find(crime => crime.id === id);
+
+                    // Add the crime record to the archive collection
+                    await setDoc(doc(db, "archive", id), crimeToArchive);
+                    // Delete the crime record from the original collection
+                    await deleteDoc(doc(db, "floods", id));
+
+                    Swal.fire('Archived!', 'The crime record has been archived.', 'success');
+                } catch (error) {
+                    console.error("Error archiving document: ", error);
+                    Swal.fire('Error!', 'There was an issue archiving the crime record.', 'error');
+                }
+            }
+        }
+
+        window.archiveCrime = archiveCrime;
+
+        async function openUpdateForm(id) {
+            const crimeToUpdate = crimes.find(crime => crime.id === id);
+
+            document.getElementById("updateId").value = crimeToUpdate.id;
+            document.getElementById("updateBrgy").value = crimeToUpdate.brgy;
+            document.getElementById("updateDate").value = crimeToUpdate.date.toDate().toISOString().split('T')[0];
+            document.getElementById("updateLatitude").value = crimeToUpdate.latitude;
+            document.getElementById("updateLongitude").value = crimeToUpdate.longitude;
+            document.getElementById("updateType").value = crimeToUpdate.type;
+
+            document.getElementById("updateForm").style.display = "block";
+        }
+
+        window.openUpdateForm = openUpdateForm;
+
+        async function updateCrime() {
+    const id = document.getElementById("updateId").value;
+    const updatedData = {
+        brgy: document.getElementById("updateBrgy").value,
+        date: new Date(document.getElementById("updateDate").value),
+        latitude: parseFloat(document.getElementById("updateLatitude").value),
+        longitude: parseFloat(document.getElementById("updateLongitude").value),
+        type: document.getElementById("updateType").value
+    };
+
+    try {
+        // Update the document in Firestore
+        await updateDoc(doc(db, "floods", id), updatedData);
+
+        // Update the data locally in the `crimes` array
+        const crimeIndex = crimes.findIndex(crime => crime.id === id);
+        if (crimeIndex !== -1) {
+            crimes[crimeIndex] = { id, ...updatedData };
+        }
+
+        // Find the row to update in the table
+        const row = document.querySelector(`#crimeTableBody tr[data-id='${id}']`);
+        if (row) {
+            row.querySelector('td:nth-child(1)').textContent = updatedData.brgy;
+            row.querySelector('td:nth-child(2)').textContent = updatedData.date.toLocaleDateString();
+            row.querySelector('td:nth-child(3)').textContent = updatedData.latitude;
+            row.querySelector('td:nth-child(4)').textContent = updatedData.longitude;
+            row.querySelector('td:nth-child(5)').textContent = updatedData.type;
+        }
+
+        Swal.fire('Updated!', 'The crime record has been updated.', 'success');
+        document.getElementById("updateForm").style.display = "none";
+    } catch (error) {
+        console.error("Error updating document: ", error);
+        Swal.fire('Error!', 'There was an issue updating the crime record.', 'error');
+    }
+}
+
+        window.updateCrime = updateCrime;
+
+        document.addEventListener("DOMContentLoaded", fetchCrimes);
+    </script>
+</head>
+
+<body>
+    <div class="sidebar">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiY2opV-RQ_a3X86nC4cQ8rNlNBtFkBoHKTw&s" alt="Logo" class="logo">
+            <p style="text-align:center">Admin Menard</p>
+        <ul>
+            <li><a href="dashboard.html"> <i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+          
+            <li><a href="users.html"><i class="fas fa-users"></i> Users</a></li>
+            <li><a href="barangay.html"><i class="fas fa-map-marker-alt"></i> Barangays</a></li>
+    
+    
+            <li><a href="floods.html"><i class="fas fa-tint"></i> Flood Reports</a></li>
+            <li><a href="flood_adding.html"><i class="fas fa-plus-square"></i> Adding Flood Reports</a></li>
+            <li><a href="reports.html"><i class="fas fa-bell"></i> Incident Reports <span id="pendingReportsCount" class="pending-badge">0</span></a></li>
+            <li><a href="sos.html"><i class="fas fa-ambulance"></i> SOS Reports</a></li>
+    
+            <li><a href="logout.html" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+        
+    </div>
+    <div class="main-content">
+      
+        <h1>Crime Data</h1>
+        <form>
+            <label for="monthSelect">Month:</label>
+            <select id="monthSelect" onchange="filterByMonth()">
+                <option value="">All Months</option>
+                <option value="0">January</option>
+                <option value="1">February</option>
+                <option value="2">March</option>
+                <option value="3">April</option>
+                <option value="4">May</option>
+                <option value="5">June</option>
+                <option value="6">July</option>
+                <option value="7">August</option>
+                <option value="8">September</option>
+                <option value="9">October</option>
+                <option value="10">November</option>
+                <option value="11">December</option>
+            </select>
+            <br>
+            <label for="typeSelect">Type:</label>
+            <select id="typeSelect" onchange="filterByMonth()"></select>
+        </form>
+        <table id="crimeTable">
+            <thead>
+                <tr>
+                    <th>Barangay</th>
+                    <th>Date</th>
+                    <th>Latitude</th>
+                    <th>Longitude</th>
+                    <th>Type</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="crimeTableBody"></tbody>
+        </table>
+
+        <div id="updateForm">
+            <h2>Update Crime</h2>
+            <input type="hidden" id="updateId">
+            <label for="updateBrgy">Barangay:</label>
+            <input type="text" id="updateBrgy">
+      
+            <input type="hidden" id="updateDate">
+            <br>
+            <label for="updateLatitude">Latitude:</label>
+            <input type="number" step="any" id="updateLatitude" readonly>
+            <label for="updateLongitude">Longitude:</label>
+            <input type="number" step="any" id="updateLongitude" readonly>
+            <label for="updateType">Type:</label>
+            <input type="text" id="updateType">
+            <div class="button-container">
+                <button onclick="updateCrime()">Update</button>
+                <button onclick="document.getElementById('updateForm').style.display='none'">Cancel</button>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

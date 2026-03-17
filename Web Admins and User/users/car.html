@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Testimonial Carousel</title>
+    <style>
+        .carousel-container {
+            position: relative;
+            width: 80%;
+            margin: 40px auto;
+            overflow: hidden;
+            border-radius: 10px;
+            background-color: #222;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .carousel {
+            display: flex;
+            transition: transform 0.5s ease;
+        }
+
+        .carousel-item {
+            flex: 0 0 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            color: #fff;
+            text-align: center;
+        }
+
+        .carousel-item h4 {
+            color: #1da1f2;
+            margin-bottom: 10px;
+        }
+
+        .carousel-item p {
+            color: #ddd;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .carousel-item span {
+            display: block;
+            font-size: 14px;
+            color: #aaa;
+            margin-top: 10px;
+        }
+
+        .carousel-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            border: none;
+            font-size: 18px;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 50%;
+            z-index: 100;
+        }
+
+        .prev-btn {
+            left: 10px;
+        }
+
+        .next-btn {
+            right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="carousel-container">
+        <div class="carousel" id="testimonial-carousel">
+            <!-- Testimonials will be dynamically inserted here -->
+        </div>
+        <button class="carousel-btn prev-btn" onclick="prevSlide()">&#10094;</button>
+        <button class="carousel-btn next-btn" onclick="nextSlide()">&#10095;</button>
+    </div>
+
+    <script type="module">
+        // Firebase initialization
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+        apiKey: "AIzaSyCYF9a_WvqUwBULYc8MXos_nba-_mrW17U",
+        authDomain: "cityinsight-61c09.firebaseapp.com",
+        projectId: "cityinsight-61c09",
+        storageBucket: "cityinsight-61c09.appspot.com",
+        messagingSenderId: "230924032629",
+        appId: "1:230924032629:web:5b0b7e10e88959a3db763c",
+        measurementId: "G-VV7WJRCEZ0"
+      };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Fetch testimonials from Firestore
+        const fetchTestimonials = async () => {
+            const carousel = document.getElementById("testimonial-carousel");
+            const querySnapshot = await getDocs(collection(db, "testimonials"));
+            const testimonials = [];
+
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                testimonials.push(data);
+            });
+
+            // Sort testimonials by date (optional)
+            testimonials.sort((a, b) => b.date.toMillis() - a.date.toMillis());
+
+            // Generate testimonial items
+            carousel.innerHTML = testimonials.map(testimonial => `
+                <div class="carousel-item">
+                    <h4>${testimonial.author || 'Anonymous'}</h4>
+                    <p>"${testimonial.content}"</p>
+                    <span>${new Date(testimonial.date.toMillis()).toLocaleDateString()}</span>
+                </div>
+            `).join("");
+
+            // Initialize carousel
+            currentSlide = 0;
+            updateCarousel();
+        };
+
+        // Carousel Logic
+        let currentSlide = 0;
+
+        const updateCarousel = () => {
+            const carousel = document.getElementById("testimonial-carousel");
+            const items = carousel.children;
+            const totalSlides = items.length;
+            const offset = -currentSlide * 100;
+
+            carousel.style.transform = `translateX(${offset}%)`;
+        };
+
+        const prevSlide = () => {
+            const carousel = document.getElementById("testimonial-carousel");
+            const totalSlides = carousel.children.length;
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            updateCarousel();
+        };
+
+        const nextSlide = () => {
+            const carousel = document.getElementById("testimonial-carousel");
+            const totalSlides = carousel.children.length;
+            currentSlide = (currentSlide + 1) % totalSlides;
+            updateCarousel();
+        };
+
+        // Make functions accessible globally
+        window.prevSlide = prevSlide;
+        window.nextSlide = nextSlide;
+
+        // Fetch testimonials on page load
+        fetchTestimonials();
+    </script>
+</body>
+</html>

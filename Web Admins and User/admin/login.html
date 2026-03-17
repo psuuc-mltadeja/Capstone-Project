@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CityInsight - Login</title>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+</head>
+
+<body>
+
+    <div class="container">
+        <form id="loginForm">
+            <input type="email" name="email" id="email" placeholder="Email" required>
+            <input type="password" name="password" id="password" placeholder="Password" required>
+            <button type="button" id="loginButton">Login</button>
+            <p><a href="#" id="forgotPasswordLink">Forgot Password?</a></p>
+        </form>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCYF9a_WvqUwBULYc8MXos_nba-_mrW17U",
+            authDomain: "cityinsight-61c09.firebaseapp.com",
+            projectId: "cityinsight-61c09",
+            storageBucket: "cityinsight-61c09.appspot.com",
+            messagingSenderId: "230924032629",
+            appId: "1:230924032629:web:5b0b7e10e88959a3db763c",
+            databaseURL: "https://cityinsight-61c09-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Handle login
+        document.getElementById("loginButton").addEventListener("click", async function () {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+
+                if (user.emailVerified) {
+                    // Check if user data exists in Firestore
+                    const userDoc = await db.collection("users").doc(user.uid).get();
+                    if (userDoc.exists) {
+                        // User exists and data is in Firestore, proceed to the dashboard
+                        window.location.href = "dashboard.html"; // Modify this to your dashboard URL
+                    } else {
+                        // If data doesn't exist in Firestore, alert the user
+                        window.location.href = "dashboard.html"; // Modify this to your dashboard URL
+                    }
+                } else {
+                    alert("Please verify your email before logging in.");
+                }
+            } catch (error) {
+                console.error("Login failed:", error.message);
+                alert("Invalid credentials or error during login.");
+            }
+        });
+
+        // Handle forgot password
+        document.getElementById("forgotPasswordLink").addEventListener("click", async function (e) {
+            e.preventDefault();
+            const email = document.getElementById("email").value;
+
+            if (!email) {
+                alert("Please enter your email address to reset your password.");
+                return;
+            }
+
+            try {
+                await auth.sendPasswordResetEmail(email);
+                alert("Password reset email sent! Please check your inbox.");
+            } catch (error) {
+                console.error("Error sending password reset email:", error.message);
+                alert("Error: " + error.message);
+            }
+        });
+    </script>
+
+</body>
+</html>

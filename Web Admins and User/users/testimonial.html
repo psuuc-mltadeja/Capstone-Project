@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Testimonial</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #222;
+            color: #fff;
+            display: flex;
+        }
+
+        .sidebar {
+            position: fixed;
+            z-index: 100;
+            width: 250px;
+            height: 100vh;
+            background-color: #1a1a1a;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            font-size: 18px;
+        }
+
+        .sidebar a:hover {
+            color: #1da1f2;
+        }
+
+        .sidebar a i {
+            margin-right: 10px;
+        }
+
+        .sidebar .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1da1f2;
+            margin-bottom: 30px;
+            cursor: pointer;
+        }
+
+        .logout {
+            color: #1da1f2;
+            cursor: pointer;
+        }
+
+        .sidebar #active {
+            color: #1da1f2;
+            font-weight: bold;
+        }
+
+        .main-content {
+            margin-left: 430px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .testimonial-card {
+            background-color: #1a1a1a;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            min-width: 600px;
+        }
+
+        .testimonial-card h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #1da1f2;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            background-color: #2b2b2b;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .form-group textarea {
+            height: 150px;
+            resize: none;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+        }
+
+        .buttons button {
+            background-color: #1da1f2;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .buttons button:hover {
+            background-color: #148cc0;
+        }
+        .add-button {
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            background-color: #1da1f2;
+            border: none;
+            color: #fff;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 30px;
+            border-radius: 17px;
+            text-decoration: none;
+            height: 50px; 
+        }
+        
+        .add-button:hover {
+            background-color: #1991d0;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div>
+            <div class="logo" onclick="window.location.href='home.html';">
+                <span style="color: white">City</span>Insight
+            </div>
+            <a href="posttext.html" class="add-button"><i class="fas fa-plus-circle"></i>&nbsp; CREATE POST</a>
+            <a href="home.html"><i class="fas fa-users"></i>&nbsp; Community</a>
+            <a href="profile.html"><i class="fas fa-user"></i>&nbsp; Profile</a>
+            <a href="#"><i class="fas fa-bell"></i>&nbsp; Notifications</a>
+            <a href="#"><i class="fas fa-envelope"></i>&nbsp; Messages</a>
+            <a href="crimes.html"><i class="fas fa-exclamation-triangle"></i>&nbsp; Crimes</a>
+            <a href="#"><i class="fas fa-fire-alt"></i>&nbsp; Natural Disaster</a>
+            <a href="flood.html"><i class="fas fa-water"></i>&nbsp; Flood</a>
+            <a href="#"><i class="fas fa-concierge-bell"></i>&nbsp; Services</a>
+            <a href="#"><i class="fas fa-info-circle"></i>&nbsp; About</a>
+            <a href="login.html"><i class="fas fa-sign-out-alt"></i>&nbsp; Logout</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="testimonial-card">
+            <h2>Submit Your Testimonial</h2>
+       
+        </div>
+    </div>
+    <script type="module">
+        // Firebase initialization
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+        apiKey: "AIzaSyCYF9a_WvqUwBULYc8MXos_nba-_mrW17U",
+        authDomain: "cityinsight-61c09.firebaseapp.com",
+        projectId: "cityinsight-61c09",
+        storageBucket: "cityinsight-61c09.appspot.com",
+        messagingSenderId: "230924032629",
+        appId: "1:230924032629:web:5b0b7e10e88959a3db763c",
+        measurementId: "G-VV7WJRCEZ0"
+      };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Fetch testimonials from Firestore
+        const fetchTestimonials = async () => {
+            const carousel = document.getElementById("testimonial-carousel");
+            const querySnapshot = await getDocs(collection(db, "testimonials"));
+            const testimonials = [];
+
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                testimonials.push(data);
+            });
+
+            // Sort testimonials by date (optional)
+            testimonials.sort((a, b) => b.date.toMillis() - a.date.toMillis());
+
+            // Generate testimonial items
+            carousel.innerHTML = testimonials.map(testimonial => `
+                <div class="carousel-item">
+                    <h4>${testimonial.author || 'Anonymous'}</h4>
+                    <p>"${testimonial.content}"</p>
+                    <span>${new Date(testimonial.date.toMillis()).toLocaleDateString()}</span>
+                </div>
+            `).join("");
+
+            // Initialize carousel
+            currentSlide = 0;
+            updateCarousel();
+        };
+
+        // Carousel Logic
+        let currentSlide = 0;
+
+        const updateCarousel = () => {
+            const carousel = document.getElementById("testimonial-carousel");
+            const items = carousel.children;
+            const totalSlides = items.length;
+            const offset = -currentSlide * 100;
+
+            carousel.style.transform = `translateX(${offset}%)`;
+        };
+
+        const prevSlide = () => {
+            const carousel = document.getElementById("testimonial-carousel");
+            const totalSlides = carousel.children.length;
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            updateCarousel();
+        };
+
+        const nextSlide = () => {
+            const carousel = document.getElementById("testimonial-carousel");
+            const totalSlides = carousel.children.length;
+            currentSlide = (currentSlide + 1) % totalSlides;
+            updateCarousel();
+        };
+
+        // Make functions accessible globally
+        window.prevSlide = prevSlide;
+        window.nextSlide = nextSlide;
+
+        // Fetch testimonials on page load
+        fetchTestimonials();
+    </script>
+</body>
+</html>

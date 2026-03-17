@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crime Data Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- DataTables CSS and JS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+  
+       
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+<link rel="stylesheet" href="../css/admin.css">
+<link rel="stylesheet" href="../css/body.css"> 
+    <style>
+    
+        .input-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px; /* Add some space above the input */
+}
+
+.input-container {
+    display: flex;
+    flex-direction: column; /* Change to column layout */
+    margin-top: 20px; /* Space above the input container */
+    align-items: flex-start; /* Align items to the start */
+}
+
+#crimeType {
+    width: 100%; /* Make input take full width */
+    padding: 10px; /* Increased padding */
+    margin-bottom: 10px; /* Space between input and button */
+    border: 1px solid #ddd; /* Light border */
+    border-radius: 4px; /* Rounded corners */
+    font-size: 16px; /* Increase font size for readability */
+    transition: border-color 0.3s; /* Transition effect */
+}
+
+/* Placeholder color and style */
+#crimeType::placeholder {
+    color: #aaa; /* Lighter color for the placeholder */
+    opacity: 1; /* Ensure placeholder is fully opaque */
+}
+
+/* Focus effect */
+#crimeType:focus {
+    border-color: #3498db; /* Change border color on focus */
+    outline: none; /* Remove default outline */
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.5); /* Add a subtle shadow effect */
+}
+
+button {
+    width: 100%; /* Make button take full width */
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px; /* Increased padding for the button */
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 16px; /* Increase font size for readability */
+    transition: background-color 0.3s; /* Transition effect */
+}
+
+button:hover {
+    background-color: #2980b9; /* Darker shade on hover */
+}
+
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            width: calc(100% - 250px);
+            background-color: #f4f6f9;
+        }
+
+        .main-content h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .info-container {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+
+        .info-box {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            flex: 1;
+            margin: 0 10px;
+            text-align: center;
+        }
+
+        .info-box h3 {
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .chart-container {
+            width: 80%;
+        }
+
+        canvas {
+            max-width: 80%;
+            height: 400px;
+        }
+
+        #updateForm {
+            display: none;
+            padding: 20px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            max-width: 500px;
+            margin-bottom: 20px;
+        }
+
+        #updateForm input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        #updateForm button {
+            width: 100%;
+            background-color: #27ae60;
+        }
+
+        #updateForm button:hover {
+            background-color: #2ecc71;
+        }
+
+        .top-bar {
+            background-color: #3498db;
+            color: white;
+            padding: 10px;
+            text-align: right;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .top-bar span {
+            margin-right: 20px;
+        }
+        .pending-badge {
+    background-color: red;
+    color: white;
+    border-radius: 50%;
+    padding: 5px 10px;
+    font-size: 12px;
+    position: absolute;
+ 
+    right: -5px;
+    font-weight: bold;
+    display: none; /* Initially hidden */
+}
+    </style>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+    import {
+        getFirestore,
+        collection,
+        getDocs,
+        query,
+        where,
+        onSnapshot
+    } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCYF9a_WvqUwBULYc8MXos_nba-_mrW17U",
+        authDomain: "cityinsight-61c09.firebaseapp.com",
+        databaseURL: "https://cityinsight-61c09-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "cityinsight-61c09",
+        storageBucket: "cityinsight-61c09.appspot.com",
+        messagingSenderId: "230924032629",
+        appId: "1:230924032629:web:5b0b7e10e88959a3db763c",
+        measurementId: "G-VV7WJRCEZ0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let crimeData = {};
+    let crimeChart;
+
+    // Check if the user is logged in
+    // onAuthStateChanged(auth, (user) => {
+    //     if (!user) {
+    //         window.location.href = "login.html";
+    //     }
+    // });
+
+    // Fetch and render the chart data
+    async function fetchCrimeData(crimeType) {
+        crimeData = {};
+        const crimesCollection = collection(db, "crimes");
+        const lowerCaseCrimeType = crimeType.toLowerCase();
+        const q = query(crimesCollection, where("type", "==", lowerCaseCrimeType));
+        const querySnapshot = await getDocs(q);
+
+        querySnapshot.forEach(doc => {
+            const crime = doc.data();
+            const brgy = crime.brgy;
+
+            if (!crimeData[brgy]) {
+                crimeData[brgy] = 1;
+            } else {
+                crimeData[brgy]++;
+            }
+        });
+
+        renderChart();
+    }
+
+    function renderChart() {
+        const ctx = document.getElementById('crimeChart').getContext('2d');
+        const barangays = Object.keys(crimeData);
+        const counts = Object.values(crimeData);
+
+        if (crimeChart) {
+            crimeChart.destroy();
+        }
+
+        crimeChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: barangays,
+                datasets: [{
+                    label: 'Number of Crimes',
+                    data: counts,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            callback: function(value) {
+                                if (Number.isInteger(value)) {
+                                    return value;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Fetch data on button click
+    function handleSubmit() {
+        const crimeTypeInput = document.getElementById('crimeType').value;
+        if (crimeTypeInput) {
+            fetchCrimeData(crimeTypeInput);
+        } else {
+            alert('Please enter a valid crime type.');
+        }
+    }
+
+    // Monitor new reports in real-time
+// Monitor new reports in real-time
+// Monitor new reports in real-time
+// Combined monitoring function
+// Combined monitoring function for reports and SOS with specific conditions
+// Monitor new reports and SOS requests in real-time
+function monitorNewReportsAndSOS() {
+    const reportsCollection = collection(db, "reports");
+    const sosReportsCollection = collection(db, "sosreqs");
+
+    let newReport = null;
+    let newSOS = null;
+
+    // Monitor for new reports with "pending" status
+    onSnapshot(reportsCollection, (snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+            if (change.type === "added") {
+                const reportData = change.doc.data();
+                if (reportData.status === "pending") {
+                    newReport = reportData; // Store new pending report
+                }
+            }
+        });
+
+        // After processing the snapshot, show the alert if necessary
+        checkAndShowAlert(newReport, newSOS);
+    });
+
+    // Monitor for new SOS with "pending" status
+    onSnapshot(sosReportsCollection, (snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+            if (change.type === "added") {
+                const sosData = change.doc.data();
+                if (sosData.status === "pending") {
+                    newSOS = sosData; // Store new pending SOS request
+                }
+            }
+        });
+
+        // After processing the snapshot, show the alert if necessary
+        checkAndShowAlert(newReport, newSOS);
+    });
+}
+
+// Helper function to check and display SweetAlert notifications
+function checkAndShowAlert(newReport, newSOS) {
+    if (newReport || newSOS) {
+        let alertMessage = "You have new notifications:\n";
+        let footerContent = "";
+
+        // If there is a new pending report
+        if (newReport && !newSOS) {
+            alertMessage = `New pending report: ${newReport.type || 'Unknown type'}`;
+            footerContent = `<button class="swal2-confirm" style="background-color:#3498db" onclick="window.location.href='reports.html'">View Reports</button>`;
+        }
+        // If there is a new pending SOS
+        else if (!newReport && newSOS) {
+            alertMessage = `New pending SOS:`;
+            footerContent = `<button class="swal2-confirm" style="background-color:#e74c3c" onclick="window.location.href='sos.html'">View SOS</button>`;
+        }
+        // If both pending report and SOS are present
+        else if (newReport && newSOS) {
+            alertMessage = "You have new pending reports and SOS alerts.";
+            footerContent = `
+                <button class="swal2-confirm" style="background-color:#3498db" onclick="window.location.href='reports.html'">View Reports</button>
+                <button class="swal2-confirm" style="background-color:#e74c3c" onclick="window.location.href='sos.html'">View SOS</button>
+            `;
+        }
+
+        // Display the alert with the customized footer
+        Swal.fire({
+            title: 'New Pending Alerts!',
+            text: alertMessage,
+            icon: 'info',
+         
+            footer: footerContent
+        });
+    }
+}
+
+// Start monitoring for new pending reports and SOS requests
+monitorNewReportsAndSOS();
+
+
+
+// Function to monitor and update pending reports count
+function monitorPendingReports() {
+    const reportsCollection = collection(db, "reports");
+
+    onSnapshot(reportsCollection, (snapshot) => {
+        let pendingCount = 0;
+
+        snapshot.forEach((doc) => {
+            const report = doc.data();
+            if (report.status && report.status.toLowerCase() === "pending") {
+                pendingCount++;
+            }
+        });
+
+        // Update the Incident Reports link with the pending count
+        updatePendingReportsCount(pendingCount);
+    });
+}
+
+// Function to update the pending reports count in the sidebar
+function updatePendingReportsCount(pendingCount) {
+    const pendingReportsCount = document.getElementById("pendingReportsCount");
+
+    if (pendingCount > 0) {
+        // Show the count if there are pending reports
+        pendingReportsCount.innerText = pendingCount;
+        pendingReportsCount.style.display = "inline-block";  // Make sure the badge is visible
+    } else {
+        // If no pending reports, hide the badge
+        pendingReportsCount.innerText = '';
+        pendingReportsCount.style.display = "none";
+    }
+}
+
+// Start monitoring pending reports
+monitorPendingReports();
+
+
+    // Update user info boxes
+    async function updateInfoBoxes() {
+        const fetchCount = async (collectionName) => {
+            const snapshot = await getDocs(collection(db, collectionName));
+            return snapshot.size;
+        };
+
+        document.getElementById('userCount').innerText = await fetchCount("users");
+        document.getElementById('crimeCount').innerText = await fetchCount("crimes");
+        document.getElementById('floodCount').innerText = await fetchCount("floods");
+        document.getElementById('sosCount').innerText = await fetchCount("sosreqs");
+    }
+
+    window.onload = async () => {
+        document.getElementById('fetchCrimeBtn').addEventListener('click', handleSubmit);
+        await updateInfoBoxes();
+        monitorNewReports(); // Start monitoring for new reports
+    };
+
+    // Logout functionality
+    document.getElementById("logout-btn").addEventListener("click", (e) => {
+        e.preventDefault();
+
+        signOut(auth)
+            .then(() => {
+                console.log("User signed out.");
+                window.location.href = "login.html";
+            })
+            .catch((error) => {
+                console.error("Error signing out: ", error);
+            });
+    });
+</script>
+
+
+
+</head>
+
+<body>
+<style>
+    .sidebar .logo {
+    display: block;
+    margin: 0 auto 20px; /* Center the logo and add margin below */
+    width: 80%; /* Adjust the width as necessary */
+    max-width: 80px; /* Limit the maximum width of the logo */
+    height: auto; /* Maintain aspect ratio */
+    border-radius: 100%;
+}
+p{
+    text-align: center;
+}
+
+</style>
+
+<div class="sidebar">
+    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiY2opV-RQ_a3X86nC4cQ8rNlNBtFkBoHKTw&s" alt="Logo" class="logo">
+        <p style="text-align:center">Admin Menard</p>
+    <ul>
+        <li><a href="dashboard.html"> <i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+        <li><a href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a></li>
+        <li><a href="users.html"><i class="fas fa-users"></i> Users</a></li>
+        <li><a href="barangay.html"><i class="fas fa-map-marker-alt"></i> Barangays</a></li>
+        <li><a href="crimes.html"><i class="fas fa-file-alt"></i> Crime Reports</a></li>
+        <li><a href="crime_adding.html"><i class="fas fa-plus-circle"></i> Adding Crime Reports</a></li>
+        <li><a href="archived.html"><i class="fas fa-archive"></i> Archived</a></li>
+        <li><a href="floods.html"><i class="fas fa-tint"></i> Flood Reports</a></li>
+        <li><a href="flood_adding.html"><i class="fas fa-plus-square"></i> Adding Flood Reports</a></li>
+        <li><a href="reports.html"><i class="fas fa-bell"></i> Incident Reports <span id="pendingReportsCount" class="pending-badge">0</span></a></li>
+        <li><a href="sos.html"><i class="fas fa-ambulance"></i> SOS Reports</a></li>
+        <li><a href="testimonials.html"><i class="fas fa-comments"></i> Testimonials</a></li>
+        <li><a href="logout.html" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+    </ul>
+    
+</div>
+    <div class="main-content">
+<style>
+    .info-box {
+    background-color: white;
+    border: 2px solid; /* Border width */
+    border-radius: 8px;
+    padding: 20px;
+    flex: 1;
+    margin: 0 10px;
+    text-align: center;
+    transition: border-color 0.3s ease; /* Smooth transition for hover effect */
+}
+
+.info-box h3 {
+    display: flex;
+    align-items: center; /* Align icon and text vertically */
+    margin-bottom: 10px; /* Space between heading and count */
+}
+
+.info-box h3 i {
+    margin-right: 8px; /* Space between icon and text */
+    font-size: 24px; /* Adjust icon size */
+}
+.info-box p {
+    margin-right: 8px; /* Space between icon and text */
+    font-size: 30px; /* Adjust icon size */
+}
+
+/* Optional: Change border color on hover */
+.info-box:hover {
+    border-color: #2980b9; /* Change border color on hover */
+}
+
+</style>
+        <h1>Dashboard</h1>
+
+        <div class="info-container">
+            <div class="info-box">
+                <h3><i class="fas fa-users" style="color: #3498db;"></i> Total Users</h3>
+                <p id="userCount">Loading...</p>
+            </div>
+            <div class="info-box">
+                <h3><i class="fas fa-crime" style="color: #e74c3c;"></i> Total Crimes</h3>
+                <p id="crimeCount">Loading...</p>
+            </div>
+        </div>
+        <div class="info-container">
+            <div class="info-box">
+                <h3><i class="fas fa-water" style="color: #1abc9c;"></i> Flood Warning</h3>
+                <p id="floodCount">Loading...</p>
+            </div>
+            <div class="info-box">
+                <h3><i class="fas fa-exclamation-circle" style="color: #f39c12;"></i> Total SOS Alerts</h3>
+                <p id="sosCount">Loading...</p>
+            </div>
+        </div>
+        
+
+        <div class="input-container">
+            <input type="text" id="crimeType" placeholder="Enter crime type (e.g., murder)">
+        
+            <button id="fetchCrimeBtn">Fetch Data</button>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="crimeChart"></canvas>
+        </div>
+
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Maps - Urdaneta City, Pangasinan</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/admin.css">
+<link rel="stylesheet" href="../css/body.css">
+    <style>
+      
+
+
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            width: calc(100% - 250px);
+            background-color: #f4f6f9;
+        }
+
+        .main-content h2 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+
+        #locationInfo {
+            margin-top: 10px;
+            font-family: Arial, sans-serif;
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="text"], input[type="number"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            width: 50%;
+          
+        }
+        table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        background-color: white;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        text-align: center; /* Center text horizontally */
+    }
+
+    th, td {
+        padding: 12px;
+        text-align: center; /* Center text horizontally */
+        border: 1px solid #ddd;
+    }
+
+    th {
+        background-color: #3498db;
+        color: white;
+    }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        @media screen and (max-width: 768px) {
+            .sidebar {
+                width: 60px;
+            }
+
+            .main-content {
+                margin-left: 60px;
+                width: calc(100% - 60px);
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .sidebar {
+                width: 0;
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap" defer></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+</head>
+<body>
+    <style>
+        .sidebar .logo {
+        display: block;
+        margin: 0 auto 20px; /* Center the logo and add margin below */
+        width: 80%; /* Adjust the width as necessary */
+        max-width: 80px; /* Limit the maximum width of the logo */
+        height: auto; /* Maintain aspect ratio */
+        border-radius: 100%;
+    }
+    p{
+        text-align: center;
+    }
+    
+    </style>
+ <div class="sidebar">
+    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiY2opV-RQ_a3X86nC4cQ8rNlNBtFkBoHKTw&s" alt="Logo" class="logo">
+        <p style="text-align:center">Admin Menard</p>
+    <ul>
+        <li><a href="dashboard.html"> <i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+      
+        <li><a href="users.html"><i class="fas fa-users"></i> Users</a></li>
+        <li><a href="barangay.html"><i class="fas fa-map-marker-alt"></i> Barangays</a></li>
+
+
+        <li><a href="floods.html"><i class="fas fa-tint"></i> Flood Reports</a></li>
+        <li><a href="flood_adding.html"><i class="fas fa-plus-square"></i> Adding Flood Reports</a></li>
+        <li><a href="reports.html"><i class="fas fa-bell"></i> Incident Reports <span id="pendingReportsCount" class="pending-badge">0</span></a></li>
+        <li><a href="sos.html"><i class="fas fa-ambulance"></i> SOS Reports</a></li>
+
+        <li><a href="logout.html" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+    </ul>
+    
+</div>
+    
+
+<div class="main-content">
+    <h2>Google Maps - Urdaneta City, Pangasinan</h2>
+
+    <div id="map"></div>
+    <br>
+    <h4>Tag Location for flood reports.</h4>
+    <br>
+    <div class="form-control">
+      
+     
+        <input type="text" id="crimeDescription" placeholder="Description" />
+        <input type="text" id="crimeDate" placeholder="Date Tagged" readonly />
+        <input type="text" id="latitude" placeholder="Latitude" readonly />
+        <input type="text" id="longitude" placeholder="Longitude" readonly />
+        <input type="text" id="address" placeholder="Address" readonly />
+        <button id="saveCrime">Add Crime</button>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-firestore-compat.js"></script>
+
+    <script>
+        
+      const firebaseConfig = {
+        apiKey: "AIzaSyCYF9a_WvqUwBULYc8MXos_nba-_mrW17U",
+        authDomain: "cityinsight-61c09.firebaseapp.com",
+        projectId: "cityinsight-61c09",
+        storageBucket: "cityinsight-61c09.appspot.com",
+        messagingSenderId: "230924032629",
+        appId: "1:230924032629:web:5b0b7e10e88959a3db763c",
+        measurementId: "G-VV7WJRCEZ0"
+      };
+
+      const app = firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+    
+
+    </script>
+<script>
+    var map = L.map('map').setView([15.9805, 120.5581], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+    }).addTo(map);
+
+    var redIcon = new L.Icon({
+      iconUrl: 'mark.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+      shadowSize: [41, 41]
+    });
+
+    // Variable to hold the marker
+    let marker;
+
+    // Function to handle map click
+    map.on('click', function(e) {
+      const lat = e.latlng.lat;
+      const lng = e.latlng.lng;
+      const addressInput = document.getElementById('address');
+      const latitudeInput = document.getElementById('latitude');
+      const longitudeInput = document.getElementById('longitude');
+      const dateInput = document.getElementById('crimeDate');
+
+      // Update latitude and longitude input fields
+      latitudeInput.value = lat;
+      longitudeInput.value = lng;
+
+      // Set current date and time in the date input field
+      const currentDate = new Date().toLocaleString();
+      dateInput.value = currentDate;
+
+      // Fetch address from latitude and longitude
+      fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
+        .then(response => response.json())
+        .then(data => {
+          if (data && data.address) {
+            addressInput.value = data.display_name;
+          } else {
+            addressInput.value = 'Address not found';
+          }
+        });
+
+      // Remove the existing marker if it exists
+      if (marker) {
+        map.removeLayer(marker);
+      }
+
+      // Add a marker at the clicked location
+      marker = L.marker([lat, lng], { icon: redIcon }).addTo(map);
+    });
+
+    // Save crime data to Firestore with confirmation
+    document.getElementById('saveCrime').addEventListener('click', () => {
+      const crimeDate = document.getElementById('crimeDate').value;
+      const crimeDescription = document.getElementById('crimeDescription').value;
+      const latitude = document.getElementById('latitude').value;
+      const longitude = document.getElementById('longitude').value;
+      const address = document.getElementById('address').value;
+
+      // Show confirmation dialog
+      Swal.fire({
+          title: 'Are you sure?',
+          text: "Do you want to add this flood report?",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Yes, add it!'
+      }).then((result) => {
+          if (result.isConfirmed) {
+              // Save to Firestore
+              db.collection("floods").add({
+                  date: crimeDate,
+                  details: crimeDescription,
+                  latitude: parseFloat(latitude),
+                  longitude: parseFloat(longitude),
+                  brgy: address
+              }).then(() => {
+                  Swal.fire(
+                      'Added!',
+                      'Flood report has been added successfully.',
+                      'success'
+                  );
+                  // Reset fields
+                  document.getElementById('crimeDate').value = '';
+                  document.getElementById('crimeDescription').value = '';
+                  document.getElementById('latitude').value = '';
+                  document.getElementById('longitude').value = '';
+                  document.getElementById('address').value = '';
+                  if (marker) {
+                      map.removeLayer(marker); // Remove the marker after saving
+                  }
+              }).catch((error) => {
+                  console.error("Error adding flood report: ", error);
+                  Swal.fire(
+                      'Error!',
+                      'There was an error adding the flood report.',
+                      'error'
+                  );
+              });
+          }
+      });
+    });
+</script>
+
+</div>
+
+</body>
+</html>

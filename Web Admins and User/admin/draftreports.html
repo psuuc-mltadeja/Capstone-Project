@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Urdaneta City</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/body.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js"></script>
+    <style>
+        table {
+            margin-top: 20px;
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table th, table td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        table th {
+            background-color: #f4f4f4;
+        }
+        .button {
+            padding: 8px 15px;
+            font-size: 14px;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s ease;
+        }
+        .button.approve {
+            background-color: #28a745;
+        }
+        .button.approve:hover {
+            background-color: #218838;
+        }
+        .button.view {
+            background-color: #3498db;
+        }
+        .button.view:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiY2opV-RQ_a3X86nC4cQ8rNlNBtFkBoHKTw&s" alt="Logo" class="logo">
+        <p style="text-align:center">Admin Menard</p>
+        <ul>
+            <li><a href="dashboard.html"> <i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+            <li><a href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a></li>
+            <li><a href="users.html"><i class="fas fa-users"></i> Users</a></li>
+            <li><a href="barangay.html"><i class="fas fa-map-marker-alt"></i> Barangays</a></li>
+            <li><a href="crimes.html"><i class="fas fa-file-alt"></i> Crime Reports</a></li>
+            <li><a href="crime_adding.html"><i class="fas fa-plus-circle"></i> Adding Crime Reports</a></li>
+            <li><a href="archived.html"><i class="fas fa-archive"></i> Archived</a></li>
+            <li><a href="floods.html"><i class="fas fa-tint"></i> Flood Reports</a></li>
+            <li><a href="flood_adding.html"><i class="fas fa-plus-square"></i> Adding Flood Reports</a></li>
+            <li><a href="reports.html"><i class="fas fa-bell"></i> Incident Reports <span id="pendingReportsCount" class="pending-badge">0</span></a></li>
+            <li><a href="sos.html"><i class="fas fa-ambulance"></i> SOS Reports</a></li>
+            <li><a href="testimonials.html"><i class="fas fa-comments"></i> Testimonials</a></li>
+            <li><a href="logout.html" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <h2>Flood Reports</h2>
+        
+        <table id="floodReportsTable" class="display">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Body</th>
+                    <th>Username</th>
+                    <th>Latitude</th>
+                    <th>Longitude</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Flood report rows will be dynamically populated here -->
+            </tbody>
+        </table>
+
+        <h2>Crime Reports</h2>
+        <table id="crimeReportsTable" class="display">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Body</th>
+                    <th>Username</th>
+                    <th>Latitude</th>
+                    <th>Longitude</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Crime report rows will be dynamically populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+    import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCYF9a_WvqUwBULYc8MXos_nba-_mrW17U",
+        authDomain: "cityinsight-61c09.firebaseapp.com",
+        projectId: "cityinsight-61c09",
+        storageBucket: "cityinsight-61c09.appspot.com",
+        messagingSenderId: "230924032629",
+        appId: "1:230924032629:web:5b0b7e10e88959a3db763c",
+        measurementId: "G-VV7WJRCEZ0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function loadReports() {
+        const floodReportsTableBody = document.querySelector('#floodReportsTable tbody');
+        const crimeReportsTableBody = document.querySelector('#crimeReportsTable tbody');
+
+        floodReportsTableBody.innerHTML = "";
+        crimeReportsTableBody.innerHTML = "";
+
+        const querySnapshot = await getDocs(collection(db, 'reports'));
+
+        querySnapshot.forEach((docSnapshot) => {
+            const data = docSnapshot.data();
+            const date = data.date?.toDate().toLocaleDateString() || 'No Date';
+
+            if (data.category === 'Floods') {
+                const floodRow = document.createElement('tr');
+                floodRow.innerHTML = `
+                    <td>${data.title || 'No Title'}</td>
+                    <td>${data.body || 'No Body'}</td>
+                    <td>${data.username || 'No Username'}</td>
+                    <td>${data.latitude || 'No Latitude'}</td>
+                    <td>${data.longitude || 'No Longitude'}</td>
+                    <td>${date}</td>
+                    <td>${data.status || 'No Status'}</td>
+                    <td>
+                        <button class="button view" onclick="viewDetails('${docSnapshot.id}')">View Full Details</button>
+                        <button class="button approve" onclick="addFloodReport('${data.title}', '${data.body}', '${data.username}', '${data.latitude}', '${data.longitude}')">Add Flood Report</button>
+                    </td>
+                `;
+                floodReportsTableBody.appendChild(floodRow);
+            } else if (data.category === 'Crimes') {
+                const crimeRow = document.createElement('tr');
+                crimeRow.innerHTML = `
+                    <td>${data.title || 'No Title'}</td>
+                    <td>${data.body || 'No Body'}</td>
+                    <td>${data.username || 'No Username'}</td>
+                    <td>${data.latitude || 'No Latitude'}</td>
+                    <td>${data.longitude || 'No Longitude'}</td>
+                    <td>${date}</td>
+                    <td>${data.status || 'No Status'}</td>
+                    <td>
+                        <button class="button view" onclick="viewDetails('${docSnapshot.id}')">View Full Details</button>
+                        <button class="button approve" onclick="addReport('${data.title}', '${data.body}', '${data.username}', '${data.latitude}', '${data.longitude}')">Add Flood Report</button>
+                    </td>
+                `;
+                crimeReportsTableBody.appendChild(crimeRow);
+            }
+        });
+
+        $('#floodReportsTable').DataTable();
+        $('#crimeReportsTable').DataTable();
+    }
+
+    window.viewDetails = function(id) {
+        localStorage.setItem("reportId", id);
+        window.location.href = "details.html";
+    };
+
+    window.addFloodReport = async function(title, body, username, latitude, longitude) {
+        const floodReportData = {
+            details: title,
+            brgy: body,
+        
+            latitude: latitude,
+            longitude: longitude,
+            date: new Date(),
+                type: 'Floods'
+         
+        };
+
+        // Add the flood report to the "flood_reports" collection
+        await addDoc(collection(db, 'floods'), floodReportData);
+        loadReports();
+        Swal.fire('Success', 'Flood report added successfully!', 'success');
+    };
+    window.addReport = async function(title, body, username, latitude, longitude) {
+        const floodReportData = {
+            details: title,
+            brgy: body,
+        
+            latitude: latitude,
+            longitude: longitude,
+            date: new Date(),
+                type: 'Crimes'
+         
+        };
+
+        // Add the flood report to the "flood_reports" collection
+        await addDoc(collection(db, 'crimes'), floodReportData);
+        loadReports();
+        Swal.fire('Success', 'Flood report added successfully!', 'success');
+    };
+
+    loadReports();
+    </script>
+</body>
+</html>

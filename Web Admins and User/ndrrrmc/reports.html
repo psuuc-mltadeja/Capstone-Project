@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Urdaneta City</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/body.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js"></script>
+    <style>
+        table {
+            margin-top: 20px;
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table th, table td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        table th {
+            background-color: #f4f4f4;
+        }
+        .button {
+            padding: 8px 15px;
+            font-size: 14px;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s ease;
+        }
+        .button.approve {
+            background-color: #28a745;
+        }
+        .button.approve:hover {
+            background-color: #218838;
+        }
+        .button.delete {
+            background-color: #e74c3c;
+        }
+        .button.delete:hover {
+            background-color: #c0392b;
+        }
+        .button.view {
+            background-color: #3498db;
+        }
+        .button.view:hover {
+            background-color: #2980b9;
+        }
+        .button.respond {
+            background-color: #f39c12;
+        }
+        .button.respond:hover {
+            background-color: #e67e22;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiY2opV-RQ_a3X86nC4cQ8rNlNBtFkBoHKTw&s" alt="Logo" class="logo">
+            <p style="text-align:center">Admin Menard</p>
+        <ul>
+            <li><a href="dashboard.html"> <i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+          
+            <li><a href="users.html"><i class="fas fa-users"></i> Users</a></li>
+            <li><a href="barangay.html"><i class="fas fa-map-marker-alt"></i> Barangays</a></li>
+    
+    
+            <li><a href="floods.html"><i class="fas fa-tint"></i> Flood Reports</a></li>
+            <li><a href="flood_adding.html"><i class="fas fa-plus-square"></i> Adding Flood Reports</a></li>
+            <li><a href="reports.html"><i class="fas fa-bell"></i> Incident Reports <span id="pendingReportsCount" class="pending-badge">0</span></a></li>
+            <li><a href="sos.html"><i class="fas fa-ambulance"></i> SOS Reports</a></li>
+    
+            <li><a href="logout.html" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+        
+    </div>
+<div class="main-content">
+    <h2>Pending Reports</h2>
+    <table id="reportsTable" class="display">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Body</th>
+                <th>Username</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Report rows will be dynamically populated here -->
+        </tbody>
+    </table>
+
+    <h2>Approved Reports</h2>
+    <table id="approvedReportsTable" class="display">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Body</th>
+                <th>Username</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Approved report rows will be dynamically populated here -->
+        </tbody>
+    </table>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+import { getFirestore, collection, getDocs, updateDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCYF9a_WvqUwBULYc8MXos_nba-_mrW17U",
+    authDomain: "cityinsight-61c09.firebaseapp.com",
+    projectId: "cityinsight-61c09",
+    storageBucket: "cityinsight-61c09.appspot.com",
+    messagingSenderId: "230924032629",
+    appId: "1:230924032629:web:5b0b7e10e88959a3db763c",
+    measurementId: "G-VV7WJRCEZ0"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+async function loadReports() {
+    const reportsTableBody = document.querySelector('#reportsTable tbody');
+    reportsTableBody.innerHTML = "";
+    const approvedReportsTableBody = document.querySelector('#approvedReportsTable tbody');
+    approvedReportsTableBody.innerHTML = "";
+
+    const querySnapshot = await getDocs(collection(db, 'reports'));
+
+    querySnapshot.forEach((docSnapshot) => {
+        const data = docSnapshot.data();
+        const date = data.date?.toDate().toLocaleDateString() || 'No Date';
+
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+            <td>${data.title || 'No Title'}</td>
+            <td>${data.body || 'No Body'}</td>
+            <td>${data.username || 'No Username'}</td>
+            <td>${date}</td>
+            <td>${data.status || 'No Status'}</td>
+            <td>
+                ${data.status === 'pending' 
+                    ? `<button class="button approve" onclick="approveReport('${docSnapshot.id}')">Approve</button>` 
+                    : ''}
+                <button class="button view" onclick="viewDetails('${docSnapshot.id}')">View Full Details</button>
+            </td>
+        `;
+        reportsTableBody.appendChild(newRow);
+
+        if (data.status === 'approved') {
+            const approvedRow = document.createElement('tr');
+            approvedRow.innerHTML = `
+                <td>${data.title || 'No Title'}</td>
+                <td>${data.body || 'No Body'}</td>
+                <td>${data.username || 'No Username'}</td>
+                <td>${date}</td>
+                <td>${data.status || 'No Status'}</td>
+                <td>
+                    <button class="button respond" onclick="respondReport('${docSnapshot.id}')">Respond</button>
+                    <button class="button view" onclick="viewDetails('${docSnapshot.id}')">View Full Details</button>
+                </td>
+            `;
+            approvedReportsTableBody.appendChild(approvedRow);
+        }
+    });
+
+    $('#reportsTable').DataTable();
+    $('#approvedReportsTable').DataTable();
+}
+
+window.approveReport = async function(id) {
+    const reportRef = doc(db, "reports", id);
+    await updateDoc(reportRef, {
+        status: "approved",
+        timestamp: serverTimestamp() // Save the current timestamp
+    });
+    Swal.fire({
+        title: 'Approved!',
+        text: 'The report has been approved successfully.',
+        icon: 'success',
+        confirmButtonText: 'OK'
+    });
+    loadReports();
+};
+
+window.respondReport = async function(id) {
+    const reportRef = doc(db, "reports", id);
+    await updateDoc(reportRef, {
+        status: "responded",
+        timestamp: serverTimestamp() // Save the current timestamp
+    });
+    Swal.fire({
+        title: 'Responded!',
+        text: 'The report has been responded to successfully.',
+        icon: 'success',
+        confirmButtonText: 'OK'
+    });
+    loadReports();
+};
+
+window.viewDetails = function(id) {
+    localStorage.setItem("reportId", id); // Store the report ID in localStorage
+    window.location.href = "details.html"; // Navigate to details page
+};
+
+loadReports();
+
+</script>
+
+</body>
+</html>

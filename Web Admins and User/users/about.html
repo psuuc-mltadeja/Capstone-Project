@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <title>CityInsight - About Us</title>
+    <style>
+         * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #222;
+            color: #fff;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 250px;
+            position: fixed;
+            z-index: 100;
+            height: 100vh;
+            background-color: #1a1a1a;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            font-size: 18px;
+        }
+
+        .sidebar a:hover {
+            color: #1da1f2;
+        }
+
+        .sidebar a i {
+            margin-right: 10px;
+        }
+
+        .sidebar .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1da1f2;
+            margin-bottom: 30px;
+            cursor: pointer;
+        }
+
+        .logout {
+            color: #1da1f2;
+            cursor: pointer;
+        }
+
+        .sidebar #active {
+            color: #1da1f2;
+            font-weight: bold;
+        }
+        .content {
+            margin-left: 270px;
+            padding: 40px;
+            background-color: #333;
+            border-radius: 10px;
+            margin-top: 25px;
+            width: calc(100% - 300px);
+        }
+
+        .content h2 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #1da1f2;
+        }
+
+        .content p {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .content .section {
+            margin-bottom: 30px;
+        }
+
+        .contact-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .contact-info div {
+            flex: 1;
+            background-color: #444;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .contact-info div i {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #1da1f2;
+        }
+
+        .contact-info div p {
+            margin-top: 5px;
+            font-size: 16px;
+        }
+        .add-button {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #1da1f2;
+            border: none;
+            color: #fff;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 30px;
+            border-radius: 17px;
+            text-decoration: none;
+            height: 50px;
+        }
+
+        .add-button:hover {
+            background-color: #148cc0;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div>
+        <div class="logo" onclick="window.location.href='home.html';">
+            <span style="color: white">City</span>Insight
+        </div>
+        <a href="posttext.html" class="add-button">
+            <i class="fas fa-plus-circle"></i>&nbsp; CREATE POST
+        </a>
+        <a href="home.html" id="active">
+            <i class="fa fa-users"></i>&nbsp; Community
+        </a>
+        <a href="profile.html">
+            <i class="fas fa-user"></i>&nbsp; Profile
+        </a>
+  
+        <a href="crimes.html">
+            <i class="fas fa-exclamation-triangle"></i>&nbsp; Crimes
+        </a>
+  
+        <a href="flood.html">
+            <i class="fas fa-water"></i>&nbsp; Flood
+        </a>
+        <a href="evacs.html">
+            <i class="fas fa-map"></i>&nbsp; Evacuation Area
+        </a>
+        <a href="hospitals.html">
+            <i class="fas fa-map"></i>&nbsp; Hospitals
+        </a>
+     
+        <a href="reports.html">
+          <i class="fas fa-exclamation-triangle"></i>&nbsp; Reports
+      </a>
+      
+        <a href="about.html">
+            <i class="fas fa-info-circle"></i>&nbsp; About
+        </a>
+        <a href="add-testimonial.html">
+          <i class="fas fa-share"></i>&nbsp; Share your experience to us
+      </a>
+        <a href="login.html">
+            <i class="fas fa-sign-out-alt"></i>&nbsp; Logout
+        </a>
+        </div>
+    </div>
+    <div class="content">
+        <div class="section">
+            <h2>About Us</h2>
+            <p>
+                At CityInsight Inc., we believe in bridging communities through innovative technologies and smarter city planning. 
+                Our mission is to make urban life more efficient, sustainable, and inclusive for everyone.
+            </p>
+        </div>
+        <div class="section">
+            <h2>Our Team</h2>
+            <p>
+                Our team comprises skilled urban planners, data scientists, developers, and designers committed to creating impactful solutions 
+                for a better urban future.
+            </p>
+        </div>
+        <div class="section">
+            <h2>Contact Us</h2>
+            <div class="contact-info">
+                <div>
+                    <i class="fas fa-envelope"></i>
+                    <p>Email: info@cityinsight.com</p>
+                </div>
+                <div>
+                    <i class="fas fa-phone"></i>
+                    <p>Phone: +123 456 7890</p>
+                </div>
+                <div>
+                    <i class="fas fa-map-marker-alt"></i>
+                    <p>Address: 123 Urban St., Smart City, CA</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

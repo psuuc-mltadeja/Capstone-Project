@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CityInsight - Login</title>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* General Styles */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #032861 45%, #0e70d1);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Navbar Styles */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 30px;
+            background-color: #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            font-size: 18px;
+            z-index: 100;
+        }
+
+        .navbar .logo {
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar .logo img {
+            height: 30px;
+            margin-right: 10px;
+        }
+
+        .navbar .links {
+            display: flex;
+            gap: 20px;
+            position: relative;
+            left: -60px;
+        }
+
+        .navbar .links a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .navbar .links a:hover {
+            color: #149DCD;
+        }
+
+        /* Container Styles */
+        .container {
+            display: flex;
+            max-width: 1000px;
+            width: 100%;
+            margin-top: 100px;
+            gap: 20px;
+        }
+
+        /* Left Column */
+        .left-column {
+            flex: 1;
+            padding: 20px;
+        }
+
+        .left-column h1 {
+            font-size: 36px;
+            color: #ffffff;
+        }
+
+        .left-column p {
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        /* Right Column */
+        .right-column {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .form-container {
+            background-color: #1a1a1a;
+            padding: 20px 20px 60px 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+            width: 280px;
+            text-align: center;
+            position: relative;
+            top: -20px;
+        }
+
+        h2 {
+            margin-top: 2px;
+            margin-bottom: 10px;
+            color: #149DCD;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        input[type="email"],
+        input[type="password"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 6px 0;
+            border: 1px solid white;
+            border-radius: 5px;
+            background: #333;
+            color: white;
+            font-size: 14px;
+        }
+
+        button {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            background-color: #149DCD;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #005bb5;
+        }
+
+        .forgot-password {
+            font-size: 12px;
+            margin-top: 5px;
+            text-align: right;
+        }
+
+        .forgot-password a {
+            color: #149DCD;
+            text-decoration: none;
+        }
+
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+
+        .register-link {
+            margin-top: 10px;
+            font-size: 11px;
+            color: white;
+        }
+
+        .register-link a {
+            color: #149DCD;
+            text-decoration: none;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+         /* Alert Modal Styles */
+         .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background-color: #ffffff;
+        padding: 20px 30px;
+        border-radius: 12px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        text-align: center;
+        width: 80%;
+        max-width: 350px;
+        color: #333333;
+    }
+
+    .modal-content h2 {
+        color: #149DCD;
+        font-size: 22px;
+        margin-bottom: 15px;
+    }
+
+    .modal-content p {
+        font-size: 16px;
+        line-height: 1.5;
+        margin-bottom: 20px;
+    }
+
+    .close {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        font-size: 20px;
+        font-weight: bold;
+        color: #999999;
+        cursor: pointer;
+        transition: color 0.3s;
+    }
+
+    .close:hover {
+        color: #333333;
+    }
+
+    .modal-button {
+        display: inline-block;
+        background-color: #149DCD;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .modal-button:hover {
+        background-color: #1175a6;
+    }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="logo">
+            <img src="images/Logo.png" alt="Logo">
+        </div>
+        <div class="links">
+            <a href="landingpage.html">Home</a>
+            <a href="login.html">Login</a>
+            <a href="index.html">Register</a>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Left Column -->
+        <div class="left-column">
+            <h1>Welcome to City<span style="color:#149DCD">Insight</span></h1>
+            <p>CityInsight helps you stay safe and informed while navigating the city. Log in to access real-time updates and manage your profile to stay one step ahead.</p>
+        </div>
+
+        <!-- Right Column -->
+        <div class="right-column">
+            <div class="form-container">
+                <h2>Login</h2>
+                <form id="loginForm">
+                    <input type="email" name="email" id="email" placeholder="Email" required>
+                    <input type="password" name="password" id="password" placeholder="Password" required>
+                    <div class="forgot-password">
+                        <a href="#" id="forgotPasswordLink">Forgot Password?</a>
+                    </div>
+                    <button type="button" id="loginButton">Login</button>
+                </form>
+                <div class="register-link">
+                    Don’t have an account? <a href="index.html">Register Now</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="alertModal" class="modal">
+        <div class="modal-content">
+            <span id="closeAlertButton" class="close">&times;</span>
+            <h2 id="alertTitle"></h2>
+            <p id="alertMessage"></p>
+            <button id="okayButton">Okay</button>
+        </div>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCYF9a_WvqUwBULYc8MXos_nba-_mrW17U",
+            authDomain: "cityinsight-61c09.firebaseapp.com",
+            projectId: "cityinsight-61c09",
+            storageBucket: "cityinsight-61c09.appspot.com",
+            messagingSenderId: "230924032629",
+            appId: "1:230924032629:web:5b0b7e10e88959a3db763c",
+            databaseURL: "https://cityinsight-61c09-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+    
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+    
+        // Modal and Alert Management
+        const alertModal = document.getElementById("alertModal");
+        const alertTitle = document.getElementById("alertTitle");
+        const alertMessage = document.getElementById("alertMessage");
+        const closeAlertButton = document.getElementById("closeAlertButton");
+        const okayButton = document.getElementById("okayButton");
+    
+        // Function to show the alert modal
+        function showAlert(title, message) {
+            alertTitle.textContent = title;
+            alertMessage.textContent = message;
+            alertModal.classList.add("active");
+        }
+    
+        // Function to close the modal
+        function closeModal() {
+            alertModal.classList.remove("active");
+        }
+    
+        // Event listeners for closing the modal
+        closeAlertButton.addEventListener("click", closeModal);
+        okayButton.addEventListener("click", closeModal);
+    
+        // Handle login
+      // Handle login
+document.getElementById("loginButton").addEventListener("click", async function () {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
+    if (!email || !password) {
+        showAlert("Incomplete Information", "All fields are required. Please ensure that you have filled out every input before proceeding.");
+        return;
+    }
+
+    try {
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+
+        if (user.emailVerified) {
+            const userDoc = await db.collection("users").doc(user.uid).get();
+
+            if (userDoc.exists) {
+                const userData = userDoc.data();
+                const status = userData.status || "no status"; // Default to "no status" if not set
+
+                if (status === "banned") {
+    Swal.fire({
+        title: "Access Denied",
+        html: "Your account has been banned. Please contact support for assistance. " +
+              "<a href='appeal.html' style='color: #3498db;' target='_blank'>Click here to appeal</a>",
+        icon: "warning",
+        confirmButtonText: "Ok",
+        confirmButtonColor: "#3498db"
+    });
+} else {
+    window.location.href = "home.html";
+}
+
+            } else {
+                // Allow login if no status document exists for the user
+                window.location.href = "home.html";
+            }
+        } else {
+            showAlert("Error", "Please verify your email before logging in.");
+        }
+    } catch (error) {
+        showAlert("Error", `Login failed: ${error.message}`);
+    }
+});
+
+    
+        // Handle forgot password
+        document.getElementById("forgotPasswordLink").addEventListener("click", async function (e) {
+            e.preventDefault();
+            const email = document.getElementById("email").value.trim();
+    
+            if (!email) {
+                showAlert("Error", "Please enter your email to reset your password.");
+                return;
+            }
+    
+            try {
+                await auth.sendPasswordResetEmail(email);
+                showAlert("Success", "Password reset email sent! Check your inbox.");
+            } catch (error) {
+                showAlert("Error", `Error: ${error.message}`);
+            }
+        });
+    </script>
+</body>
+</html>
+

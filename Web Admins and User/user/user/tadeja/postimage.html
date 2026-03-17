@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CityInsight</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #222;
+            color: #fff;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            background-color: #1a1a1a;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            font-size: 18px;
+        }
+
+        .sidebar a:hover {
+            color: #1da1f2;
+        }
+
+        .sidebar a i {
+            margin-right: 10px;
+        }
+
+        .sidebar .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1da1f2;
+            margin-bottom: 30px;
+        }
+
+        .sidebar button {
+            background-color: #1da1f2;
+            border: none;
+            color: #fff;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 30px;
+            border-radius: 17px;
+        }
+
+        .sidebar button:hover {
+            background-color: #148cc0;
+        }
+
+        .logout {
+            color: #1da1f2;
+            cursor: pointer;
+        }
+
+        .content {
+            flex-grow: 1;
+            padding: 40px;
+            background-color: #333;
+        }
+
+        .content h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            margin-right: 20px;
+            cursor: pointer;
+            font-size: 18px;
+            padding-bottom: 5px;
+        }
+
+        .tab a {
+            color: #fff; 
+            text-decoration: none; 
+        }       
+
+        .tab a:hover {
+            color: #1da1f2;
+        } 
+
+        .tab.active {
+            border-bottom: 3px solid #1da1f2;
+            color: #1da1f2;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            background-color: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .form-group textarea {
+            height: 150px;
+            resize: none;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #888;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .buttons button {
+            background-color: #1da1f2;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+
+        .buttons button:hover {
+            background-color: #148cc0;
+        }
+
+        .image-preview {
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .image-preview img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #fff;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div>
+            <div class="logo"><span style="color: white">City</span>Insight</div>
+            <a href="posttext.html" class="add-button">+ NEW POST</a>
+            <a href="profile.html"><i class="fas fa-user-circle" style="margin-right: 10px;"></i>&nbsp;Profile</a>
+            <a href="#"><i class="fas fa-bell" style="margin-right: 10px;"></i>&nbsp;Notifications</a>
+            <a href="#"><i class="fas fa-exclamation-triangle" style="margin-right: 10px;"></i>&nbsp;Crimes</a>
+            <a href="flood.html"><i class="fas fa-cloud-showers-heavy" style="margin-right: 10px;"></i>&nbsp;Flood</a>
+            <a href="#"><i class="fas fa-cog" style="margin-right: 10px;"></i>&nbsp;Services</a>
+            <a href="#"><i class="fas fa-info-circle" style="margin-right: 10px;"></i>&nbsp;About</a>
+        </div>
+        <div>
+            <a href="login.html" class="logout">Log out</a>
+        </div>
+    </div>
+
+    <div class="content">
+        <h2>Create post</h2>
+        
+        <div class="tabs">
+            <div class="tab"><a href="posttext.html">Text</a></div>
+            <div class="tab active">Images & Video</div>
+            <div class="tab"><a href="postlink.html">Link</a></div>
+        </div>
+        
+        <div class="form-group">
+            <input type="text" placeholder="Title" id="postTitle" required>
+        </div>
+
+        <div class="form-group">
+            <textarea placeholder="Write something..." id="postContent" required></textarea>
+        </div>
+
+        <div class="form-group">
+            <input type="file" id="imageUpload" multiple accept="image/*" style="padding: 10px;">
+            <div class="image-preview" id="imagePreview"></div>
+        </div>
+
+        <div class="buttons">
+            <button id="saveDraftButton">Save Draft</button>
+            <button id="postButton">Post</button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-storage.js"></script>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js';
+        import { getFirestore, collection, addDoc, doc, getDoc, Timestamp } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-firestore.js';
+        import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-storage.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.21.0/firebase-auth.js';
+    
+        const firebaseConfig = {
+            apiKey: "AIzaSyCYF9a_WvqUwBULYc8MXos_nba-_mrW17U",
+            authDomain: "cityinsight-61c09.firebaseapp.com",
+            databaseURL: "https://cityinsight-61c09-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "cityinsight-61c09",
+            storageBucket: "cityinsight-61c09.appspot.com",
+            messagingSenderId: "835973145975",
+            appId: "1:835973145975:web:a23e1a13c19f090c1f953d",
+            measurementId: "G-8NQPLF9P0J"
+        };
+    
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const storage = getStorage(app);
+    
+        async function uploadImage(file) {
+            const fileName = new Date().getTime() + '-' + file.name;
+            const storageRef = ref(storage, 'images/' + fileName);
+            await uploadBytes(storageRef, file);
+            const downloadURL = await getDownloadURL(storageRef);
+            return downloadURL;  // Return single URL
+        }
+    
+        let currentUser = null;
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                console.log("Logged in as:", user.email);
+            } else {
+                console.log("Not logged in");
+            }
+        });
+    
+        document.getElementById('postButton').addEventListener('click', async (e) => {
+            e.preventDefault();
+    
+            if (!currentUser) {
+                alert("You need to be logged in to post.");
+                return;
+            }
+    
+            const title = document.getElementById('postTitle').value;
+            const content = document.getElementById('postContent').value;
+            const images = document.getElementById('imageUpload').files;
+    
+            try {
+                // Fetch user data from Firestore using the current user's uid
+                const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+                if (!userDoc.exists()) {
+                    alert("User data not found.");
+                    return;
+                }
+    
+                const userData = userDoc.data();
+                const username = `${userData.firstname} ${userData.lastname}`;
+    
+                // Save current timestamp as Firestore Timestamp
+                const currentTimestamp = Timestamp.now();
+    
+                let imageUrl = '';
+                if (images.length > 0) {
+                    // If there are images, upload the first one and get the URL
+                    imageUrl = await uploadImage(images[0]);
+                }
+    
+                // Save post data to Firestore
+                const docRef = await addDoc(collection(db, 'crowdsourcing'), {
+                    title: title,
+                    body: content,
+                    imageUrl: imageUrl,  // Save single image URL
+                    username: username,  // Use firstName and lastName as username
+                    date: currentTimestamp  // Save timestamp as Firestore Timestamp
+                });
+    
+                alert('Post submitted successfully!');
+            } catch (error) {
+                console.error('Error submitting post:', error);
+                alert('Failed to submit post.');
+            }
+        });
+    </script>
+    
+</body>
+</html>

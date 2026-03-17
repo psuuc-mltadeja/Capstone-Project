@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Maps - Urdaneta City, Pangasinan</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/body.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+
+    <!-- Styles and Google Fonts -->
+    <style>
+ 
+    </style>
+
+    <!-- External Libraries -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    
+    <!-- jQuery (required for DataTables) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- DataTables JS -->
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+</head>
+<body>
+   
+    <div class="sidebar">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiY2opV-RQ_a3X86nC4cQ8rNlNBtFkBoHKTw&s" alt="Logo" class="logo">
+        <p style="text-align:center">Admin Menard</p>
+        <ul>
+            <li><a href="dashboard.html"> <i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+            <li><a href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a></li>
+            <li><a href="users.html"><i class="fas fa-users"></i> Users</a></li>
+            <li><a href="barangay.html"><i class="fas fa-map-marker-alt"></i> Barangays</a></li>
+            <li><a href="crimes.html"><i class="fas fa-file-alt"></i> Crime Reports</a></li>
+            <li><a href="crime_adding.html"><i class="fas fa-plus-circle"></i> Adding Crime Reports</a></li>
+            <li><a href="archived.html"><i class="fas fa-archive"></i> Archived</a></li>
+     
+            <li><a href="reports.html"><i class="fas fa-bell"></i> Incident Reports <span id="pendingReportsCount" class="pending-badge">0</span></a></li>
+            <li><a href="sos.html"><i class="fas fa-ambulance"></i> SOS Reports</a></li>
+  
+            <li><a href="logout.html" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+        
+    </div>
+
+
+    <div class="main-content">
+        <h2>Registered Users</h2>
+        <table id="usersTable" class="display">
+            <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Address</th>
+                    <th>Contact</th>
+                    <th>Email</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- User data will be dynamically inserted here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCYF9a_WvqUwBULYc8MXos_nba-_mrW17U",
+            authDomain: "cityinsight-61c09.firebaseapp.com",
+            databaseURL: "https://cityinsight-61c09-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "cityinsight-61c09",
+            storageBucket: "cityinsight-61c09.appspot.com",
+            messagingSenderId: "230924032629",
+            appId: "1:230924032629:web:5b0b7e10e88959a3db763c",
+            measurementId: "G-VV7WJRCEZ0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Check user login and status
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const userDoc = await getDocs(doc(db, "users", user.uid));
+                const userData = userDoc.data();
+                if (userData.status === "blocked") {
+                    alert("Your account has been blocked. Please contact support.");
+                    await signOut(auth);
+                    window.location.href = "login.html";
+                }
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        // Function to load users data from Firestore and display in table
+        async function loadUsers() {
+            const usersTable = document.getElementById('usersTable').getElementsByTagName('tbody')[0];
+            usersTable.innerHTML = ""; // Clear existing data
+
+            const usersSnapshot = await getDocs(collection(db, 'users'));
+            usersSnapshot.forEach((doc) => {
+                const userData = doc.data();
+                const newRow = usersTable.insertRow();
+                newRow.insertCell(0).textContent = userData.firstname;
+                newRow.insertCell(1).textContent = userData.lastname;
+                newRow.insertCell(2).textContent = userData.address;
+                newRow.insertCell(3).textContent = userData.contact;
+                newRow.insertCell(4).textContent = userData.email;
+
+                const actionsCell = newRow.insertCell(5);
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.onclick = () => confirmDeleteUser(doc.id);
+
+                const blockButton = document.createElement('button');
+                blockButton.textContent = userData.status === 'blocked' ? 'Unblock' : 'Block';
+                blockButton.onclick = () => toggleBlockUser(doc.id, userData.status);
+
+                actionsCell.appendChild(deleteButton);
+                actionsCell.appendChild(blockButton);
+            });
+
+            // Initialize DataTables after loading the data
+            $('#usersTable').DataTable();
+        }
+
+        // Function to confirm deletion of a user
+        function confirmDeleteUser(userId) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    await deleteDoc(doc(db, 'users', userId));
+                    Swal.fire('Deleted!', 'User has been deleted.', 'success');
+                    loadUsers();
+                }
+            });
+        }
+
+        // Function to toggle block/unblock a user
+        async function toggleBlockUser(userId, currentStatus) {
+            const newStatus = currentStatus === 'blocked' ? 'active' : 'blocked';
+            await updateDoc(doc(db, 'users', userId), { status: newStatus });
+            Swal.fire(newStatus === 'blocked' ? 'Blocked!' : 'Unblocked!', `User has been ${newStatus}.`, 'success');
+            loadUsers();
+        }
+
+        // Load users on page load
+        window.onload = loadUsers;
+
+
+        function monitorNewReports() {
+    const reportsCollection = collection(db, "reports");
+
+    onSnapshot(reportsCollection, (snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+            if (change.type === "added") {
+                const newReport = change.doc.data();
+
+                // Check if the report status is "pending"
+                if (newReport.status && newReport.status.toLowerCase() === "pending") {
+                    // Display SweetAlert2 notification
+                    Swal.fire({
+                        title: "New Pending Report Added!",
+                      //  text: `Type: ${newReport.type || "N/A"}\nDetails: ${newReport.details || "No details provided."}`,
+                        icon: "info",
+                        confirmButtonText: "View Reports",
+                        confirmButtonColor: "#3498db",
+                        cancelButtonText: "Ignore",
+                        showCancelButton: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = "reports.html"; // Redirect to reports page if confirmed
+                        }
+                    });
+                }
+            }
+        });
+    });
+}
+// Function to monitor and update pending reports count
+function monitorPendingReports() {
+    const reportsCollection = collection(db, "reports");
+
+    onSnapshot(reportsCollection, (snapshot) => {
+        let pendingCount = 0;
+
+        snapshot.forEach((doc) => {
+            const report = doc.data();
+            if (report.status && report.status.toLowerCase() === "pending") {
+                pendingCount++;
+            }
+        });
+
+        // Update the Incident Reports link with the pending count
+        updatePendingReportsCount(pendingCount);
+    });
+}
+
+// Function to update the pending reports count in the sidebar
+function updatePendingReportsCount(pendingCount) {
+    const pendingReportsCount = document.getElementById("pendingReportsCount");
+
+    if (pendingCount > 0) {
+        // Show the count if there are pending reports
+        pendingReportsCount.innerText = pendingCount;
+        pendingReportsCount.style.display = "inline-block";  // Make sure the badge is visible
+    } else {
+        // If no pending reports, hide the badge
+        pendingReportsCount.innerText = '';
+        pendingReportsCount.style.display = "none";
+    }
+}
+
+// Start monitoring pending reports
+monitorPendingReports();
+    </script>
+</body>
+</html>

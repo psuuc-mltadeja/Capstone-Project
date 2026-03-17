@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "230924032629",
+    "project_id": "cityinsight-61c09",
+    "storage_bucket": "cityinsight-61c09.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:230924032629:android:cd3e643bfa91a00bdb763c",
+        "android_client_info": {
+          "package_name": "com.example.cityinsight_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAuChYLRuxAIKSxM1cToaIeHXDQm0IVeiI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CityInsight</title>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <h1 class="brand-name"><a href="#">City<span>Insight</span></a></h1>
+    </nav>
+
+    <div class="container">
+        <form id="registrationForm">
+            <input type="text" name="firstname" id="firstname" placeholder="First Name" required>
+            <input type="text" name="lastname" id="lastname" placeholder="Last Name" required>
+            <input type="text" name="address" id="address" placeholder="Address" required>
+            <input type="text" name="contact" id="contact" placeholder="Contact" required>
+            <input type="text" name="email" id="email" placeholder="Email" required>
+            <input type="password" name="password" id="password" placeholder="Password" required>
+            <button type="button" id="submitData">Register</button>
+        </form>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCYF9a_WvqUwBULYc8MXos_nba-_mrW17U",
+            authDomain: "cityinsight-61c09.firebaseapp.com",
+            projectId: "cityinsight-61c09",
+            storageBucket: "cityinsight-61c09.appspot.com",
+            messagingSenderId: "230924032629",
+            appId: "1:230924032629:web:5b0b7e10e88959a3db763c",
+            databaseURL: "https://cityinsight-61c09-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Register user and send verification email
+        document.getElementById("submitData").addEventListener("click", async function () {
+            const firstname = document.getElementById("firstname").value;
+            const lastname = document.getElementById("lastname").value;
+            const address = document.getElementById("address").value;
+            const contact = document.getElementById("contact").value;
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            try {
+                // Create a new user in Firebase Authentication
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+
+                // Send email verification
+                await user.sendEmailVerification();
+                alert("Registration successful! Please verify your email to complete the registration.");
+
+                // Store user data temporarily in localStorage
+                const userData = { firstname, lastname, address, contact, email };
+                localStorage.setItem("userData", JSON.stringify(userData));
+
+                // Sign the user out after sending the verification email
+                await auth.signOut();
+            } catch (error) {
+                console.error("Error creating user:", error.message);
+                alert("Registration failed: " + error.message);
+            }
+        });
+
+        // Check if the user is logged in and email is verified
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                // Ensure user is logged in and their email is verified
+                if (user.emailVerified) {
+                    console.log("Email is verified. Saving data...");
+
+                    // Retrieve user data from localStorage
+                    const userData = JSON.parse(localStorage.getItem("userData"));
+
+                    if (userData) {
+                        try {
+                            // Save the verified user's details to Firestore
+                            await db.collection("users").doc(user.uid).set({
+                                firstname: userData.firstname,
+                                lastname: userData.lastname,
+                                address: userData.address,
+                                contact: userData.contact,
+                                email: userData.email,
+                                status: "active"
+                            });
+                            alert("Email verified and user data saved successfully.");
+
+                            // Clear stored data after saving it to Firestore
+                            localStorage.removeItem("userData");
+
+                            // Optionally, redirect user to the dashboard or home page
+                            window.location.href = "dashboard.html";
+                        } catch (error) {
+                            console.error("Error saving user data:", error.message);
+                        }
+                    }
+                } else {
+                    console.log("Email not verified yet.");
+                }
+            } else {
+                console.log("User not logged in.");
+            }
+        });
+    </script>
+
+</body>
+</html>
